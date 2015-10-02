@@ -82,8 +82,8 @@ public:
 	Tstring&  GetAdvFilterStr();
 	VOID	 SetAdvFilterStr(Tstring& tstrAdvFilterStr);
 
-	BOOL	IsPacketFiltered(CPacket* pPacket);
-	BOOL	ReplacePacketData(CPacket* pPacket);
+	BOOL	IsPacketFiltered(CPacket& packetBuf);
+	BOOL	ReplacePacketData(CPacket& packetBuf);
 
 	LPBYTE SearchKeyWord(LPBYTE lpSrc, DWORD dwLen, LPBYTE lpKey, DWORD dwKeyLen);
 

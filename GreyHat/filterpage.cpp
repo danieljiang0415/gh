@@ -3,9 +3,9 @@
 #include "ctrl.h"
 
 
-CFilterSettingPage FilterSettingPage;
+CPacketHelperSettingPage FilterSettingPage;
 
-INT_PTR CALLBACK CFilterSettingPage::FilterPageMessageProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
+INT_PTR CALLBACK CPacketHelperSettingPage::FilterPageMessageProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
 {
 	switch (message) 
 	{ 
@@ -16,7 +16,7 @@ INT_PTR CALLBACK CFilterSettingPage::FilterPageMessageProc( HWND hWnd, UINT mess
 	return FALSE; 
 }
 
-BOOL CFilterSettingPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
+BOOL CPacketHelperSettingPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 {
 
 	FilterSettingPage.m_hMainPage	= hwnd;
@@ -43,7 +43,7 @@ BOOL CFilterSettingPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 
 	return TRUE;
 }
-VOID CFilterSettingPage::OnWmCommand( HWND hWnd, int id, HWND hWndCtl, UINT codeNotify )
+VOID CPacketHelperSettingPage::OnWmCommand( HWND hWnd, int id, HWND hWndCtl, UINT codeNotify )
 {
 	switch(id)
 	{
@@ -57,14 +57,14 @@ VOID CFilterSettingPage::OnWmCommand( HWND hWnd, int id, HWND hWndCtl, UINT code
 	}
 }
 
-VOID CFilterSettingPage::OnButtonClear()
+VOID CPacketHelperSettingPage::OnButtonClear()
 {
 	DWORD dwLvCount;
-	CFilter* pFilter; 
+	CPacketHelper* pFilter; 
 
 	dwLvCount = LvGetItemCount( FilterSettingPage.m_hFilterList );
 	for ( int i = 0; i < dwLvCount; i++ ) {
-		pFilter = (CFilter*)LvGetData( FilterSettingPage.m_hFilterList, i );
+		pFilter = (CPacketHelper*)LvGetData( FilterSettingPage.m_hFilterList, i );
 		delete pFilter;
 	}
 	
@@ -77,7 +77,7 @@ VOID CFilterSettingPage::OnButtonClear()
 	SaveAllFilters();
 }
 
-BOOL CFilterSettingPage::OnWmNotify( HWND hwnd, INT id, LPNMHDR pnm )
+BOOL CPacketHelperSettingPage::OnWmNotify( HWND hwnd, INT id, LPNMHDR pnm )
 {
 	int nSel = -1;
 	Tstring tstrKeyWords, tstrReplaceData, tstrAdvFilter;
@@ -90,8 +90,8 @@ BOOL CFilterSettingPage::OnWmNotify( HWND hwnd, INT id, LPNMHDR pnm )
 
 			if (nSel != -1 /*&& id == IDC_LSTST*/)
 			{
-				CFilter* pFilter; 
-				pFilter = (CFilter*)LvGetData(FilterSettingPage.m_hFilterList, nSel);
+				CPacketHelper* pFilter; 
+				pFilter = (CPacketHelper*)LvGetData(FilterSettingPage.m_hFilterList, nSel);
 
 				SetText( FilterSettingPage.m_hKeyWord, pFilter->GetKeyWord().c_str() );
 				SetText( FilterSettingPage.m_hReplace, pFilter->GetReplaceData().c_str() );
@@ -111,20 +111,20 @@ BOOL CFilterSettingPage::OnWmNotify( HWND hwnd, INT id, LPNMHDR pnm )
 	return TRUE;
 }
 
-CFilterSettingPage::CFilterSettingPage()
+CPacketHelperSettingPage::CPacketHelperSettingPage()
 {
 
 }
 
-CFilterSettingPage::~CFilterSettingPage()
+CPacketHelperSettingPage::~CPacketHelperSettingPage()
 {
 
 }
 
 
-VOID CFilterSettingPage::OnButtonAdd()
+VOID CPacketHelperSettingPage::OnButtonAdd()
 {
-	CFilter *pFilter;
+	CPacketHelper *pFilter;
 
 	Tstring tstrKeyWord, tstrReplaceData, tstrAdvFilter;
 
@@ -135,7 +135,7 @@ VOID CFilterSettingPage::OnButtonAdd()
 
 	if ( tstrKeyWord != _T("") || tstrReplaceData != _T("") || tstrAdvFilter != _T("") )
 	{
-		pFilter = new CFilter;
+		pFilter = new CPacketHelper;
 
 		DWORD dwLvCount;
 		TCHAR tcTemp[256];
@@ -176,7 +176,7 @@ VOID CFilterSettingPage::OnButtonAdd()
 
 }
 
-VOID CFilterSettingPage::OnButtonDel()
+VOID CPacketHelperSettingPage::OnButtonDel()
 {
 	int nSel = -1;
 
@@ -184,11 +184,11 @@ VOID CFilterSettingPage::OnButtonDel()
 
 	if (nSel != -1)
 	{
-		CFilter* pFilter; 
-		pFilter = (CFilter*)LvGetData(FilterSettingPage.m_hFilterList, nSel);
+		CPacketHelper* pFilter; 
+		pFilter = (CPacketHelper*)LvGetData(FilterSettingPage.m_hFilterList, nSel);
 		if (pFilter)
 		{
-			list<CFilter*>::iterator itr;
+			list<CPacketHelper*>::iterator itr;
 			for (itr = FilterSettingPage.m_lstFilterList.begin(); itr != FilterSettingPage.m_lstFilterList.end();  itr++)
 			{
 				if ( (*itr) == pFilter )
@@ -208,7 +208,7 @@ VOID CFilterSettingPage::OnButtonDel()
 	SaveAllFilters();
 }
 
-VOID CFilterSettingPage::SaveAllFilters()
+VOID CPacketHelperSettingPage::SaveAllFilters()
 {
 
 	DWORD dwCount = LvGetItemCount(FilterSettingPage.m_hFilterList);
@@ -231,14 +231,14 @@ VOID CFilterSettingPage::SaveAllFilters()
 	}
 }
 
-VOID CFilterSettingPage::ReLoadAllFilters()
+VOID CPacketHelperSettingPage::ReLoadAllFilters()
 {
 	DWORD dwCount;
 	dwCount = _ttoi(Utility::IniAccess::GetPrivateKeyValString(GlobalEnv.tszCfgFilePath, _T("ÂË¾µ"), _T("×ÜÊý")).c_str());
 
 	for (int i=0; i<dwCount; i++)
 	{
-		CFilter* pFilter = new CFilter;
+		CPacketHelper* pFilter = new CPacketHelper;
 
 		TCHAR tcTemp[256];
 		Tstring tstrKeyWord, tstrReplaceData, tstrAdvFilter;

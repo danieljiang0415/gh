@@ -36,9 +36,6 @@
     <ClCompile Include="hexeditdlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="packet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sendpage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -49,6 +46,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\misc\utility.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\misc\packet.cpp">
       <Filter>common</Filter>
     </ClCompile>
   </ItemGroup>
@@ -71,9 +71,6 @@
     <ClInclude Include="hexeditdlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="packet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -87,6 +84,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\misc\utility.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\misc\packet.h">
       <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>

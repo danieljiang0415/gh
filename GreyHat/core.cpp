@@ -13,7 +13,7 @@ CCoreLib::~CCoreLib( void )
 /*
 start hook the CPacket edit code.
 */
-BOOL CCoreLib::AttachHookIntoGameProcess(SENDPROCHANDLER pfnOutdataHdr, RECVPROCHANDLER pfnIndataHdr)
+BOOL CCoreLib::InstallPlugin(SENDPROCHANDLER pfnOutdataHdr, RECVPROCHANDLER pfnIndataHdr)
 {
 	TCHAR tszCoreModuleLoadName[MAX_PATH];
 	DWORD dwErr;
@@ -32,7 +32,7 @@ BOOL CCoreLib::AttachHookIntoGameProcess(SENDPROCHANDLER pfnOutdataHdr, RECVPROC
 	if (GlobalEnv.hCoreInst) {
 		GlobalEnv.pfnAttachProcess		= (ATTACHPROCESS)GetProcAddress(GlobalEnv.hCoreInst, "Install");
 		GlobalEnv.pfnDetachProcess		= (DETACHPROCESS)GetProcAddress(GlobalEnv.hCoreInst, "UnInstall");
-		GlobalEnv.pfnDispatchGameData	= (DISPATCHGAMEDATA)GetProcAddress(GlobalEnv.hCoreInst, "SendData");
+		GlobalEnv.pfnDispatchPacket	= (DISPATCHGAMEDATA)GetProcAddress(GlobalEnv.hCoreInst, "Send");
 
 		if (GlobalEnv.pfnAttachProcess)	{
 
@@ -46,7 +46,7 @@ BOOL CCoreLib::AttachHookIntoGameProcess(SENDPROCHANDLER pfnOutdataHdr, RECVPROC
 /*
 unhook, detach from the code
 */
-BOOL CCoreLib::DetachHookFromGameProcess(void)
+BOOL CCoreLib::UnInstallPlugin(void)
 {
 	if (GlobalEnv.hCoreInst) {
 
@@ -65,10 +65,10 @@ BOOL CCoreLib::DetachHookFromGameProcess(void)
 /*
 Call send interface to send the CPacket.
 */
-void CCoreLib::SendData2GameServer(LPBYTE byteBuffer, DWORD dwSize, DISPATCH_CONTEXT* ctx)
+void CCoreLib::SendData(CPacket& packetBuf)
 {
-	if (GlobalEnv.pfnDispatchGameData) {
+	if (GlobalEnv.pfnDispatchPacket) {
 
-		GlobalEnv.pfnDispatchGameData(byteBuffer, dwSize, ctx);
+		GlobalEnv.pfnDispatchPacket(packetBuf);
 	}
 }

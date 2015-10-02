@@ -63,13 +63,10 @@ DWORD WINAPI ThrdStepProc( LPVOID lpThreadParameter )
 		InvalidateRect(pHexEditDlg->m_hHexView, NULL, FALSE);
 		byte *pBuf = new byte[pHexEditDlg->m_uDataSize];
 		memcpy(pBuf, p, pHexEditDlg->m_uDataSize);
-		CPacket *pPacket = (CPacket*)pHexEditDlg->GetUserData();
-		if (pPacket)
+		CPacket *packetBuf = (CPacket*)pHexEditDlg->GetUserData();
+		if (packetBuf)
 		{
-			CCoreLib::SendData2GameServer( pBuf, pHexEditDlg->m_uDataSize, pPacket->GetDispatchContext() );
-		}else
-		{
-			CCoreLib::SendData2GameServer( pBuf, pHexEditDlg->m_uDataSize,  &ViewPage.m_DispatchContext);
+			CCoreLib::SendData(*packetBuf);
 		}
 		
 		delete[]pBuf;

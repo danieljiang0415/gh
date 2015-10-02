@@ -28,6 +28,9 @@ void CPlugin::SendData(CPacket& packetBuf)
 }
 BOOL CPlugin::InstallPlugin(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc)
 {
+	m_pfnHandleSendProc = pfnHandleInputProc;
+	m_pfnHandleRecvProc = pfnHandleOutputProc;
+
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
 
@@ -37,11 +40,11 @@ BOOL CPlugin::InstallPlugin(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER 
 	m_offset12FromWSASend = (unsigned long)(GetProcAddress(GetModuleHandleA("ws2_32.dll"), "WSASend")) + 0x000000012;
 	DetourAttach(&(PVOID&)m_offset12FromWSASend, &WSASend12Thunk);
 
-	m_offset12FromSend2 = (ULONG)(&sendto) + 12;
-	DetourAttach(&(PVOID&)m_offset12FromSend2, &SendTo12Thunk);
+	//m_offset12FromSend2 = (ULONG)(&sendto) + 12;
+	//DetourAttach(&(PVOID&)m_offset12FromSend2, &SendTo12Thunk);
 
 	m_offsetRecv = (ULONG)(&recv);
-	DetourAttach(&(PVOID&)m_offsetRecv, &StubRecv);
+	DetourAttach(&(PVOID&)m_offsetRecv, &RecvStub);
 
 	DetourTransactionCommit();
 
@@ -53,19 +56,23 @@ BOOL CPlugin::UnInstallPlugin()
 	DetourUpdateThread(GetCurrentThread());
 	DetourDetach(&(PVOID&)m_offset12FromSend, &Send12Thunk);
 	DetourDetach(&(PVOID&)m_offset12FromWSASend, &WSASend12Thunk);
-	DetourDetach(&(PVOID&)m_offset12FromSend2, &SendTo12Thunk);
-	DetourDetach(&(PVOID&)m_offsetRecv, &StubRecv);
+	//DetourDetach(&(PVOID&)m_offset12FromSend2, &SendTo12Thunk);
+	DetourDetach(&(PVOID&)m_offsetRecv, &RecvStub);
 
 	DetourTransactionCommit();
 	return TRUE;
 }
 
 
-VOID APIENTRY CPlugin::WSASendThunkHandler(SOCKET s, LPWSABUF lpBuffers, DWORD dwBufferCount)
+VOID APIENTRY CPlugin::WSASendStub(SOCKET s, LPWSABUF lpBuffers, DWORD dwBufferCount)
 {
 	for (unsigned int i = 0; i<dwBufferCount; i++)
 	{
-		m_pfnHandleSendProc(s, lpBuffers[i].buf, lpBuffers[i].len, NULL, NULL, NULL, NULL);
+		CContext ctx;
+		ctx.s = s;
+		CPacket* packetBuf = new CPacket((LPBYTE)lpBuffers[i].buf, lpBuffers[i].len, ctx);
+		packetBuf->SetType(IO_SEND);
+		m_pfnHandleSendProc(*packetBuf);
 	}
 }
 
@@ -78,15 +85,19 @@ VOID __declspec(naked) CPlugin::WSASend12Thunk()
 		push    dword ptr ds : [esp + 40h]        //SIZE( dwBufferCount )
 		push    dword ptr ds : [esp + 40h]		//DATA( LPWSABUF )
 		push    dword ptr ds : [esp + 40h]
-		call    WSASendThunkHandler
+		call    WSASendStub
 		popfd
 		popad
 		jmp     m_offset12FromWSASend
 	}
 }
-VOID APIENTRY CPlugin::SendThunkHandler(SOCKET s, const char* buf, int nlen)
+VOID APIENTRY CPlugin::SendStub(SOCKET s, const char* buf, int nlen)
 {
-	m_pfnHandleSendProc(s, buf, nlen, NULL, NULL, NULL, NULL);
+	CContext ctx;
+	ctx.s = s;
+	CPacket* packetBuf = new CPacket((LPBYTE)buf, nlen, ctx);
+	packetBuf->SetType(IO_SEND);
+	m_pfnHandleSendProc(*packetBuf);
 }
 VOID __declspec(naked) CPlugin::Send12Thunk(void)
 {
@@ -97,42 +108,49 @@ VOID __declspec(naked) CPlugin::Send12Thunk(void)
 		push    dword ptr ds : [esp + 4ch]        //SIZE( dwBufferCount )
 		push    dword ptr ds : [esp + 4ch]		//DATA( LPWSABUF )
 		push    dword ptr ds : [esp + 4ch]  		//SOCKET
-		call    SendThunkHandler
+		call    SendStub
 		popfd
 		popad
 		jmp     m_offset12FromSend
 	}
 }
 
-VOID APIENTRY CPlugin::SendToThunkHandler(SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen)
-{
-	m_pfnHandleSendProc(s, buf, len, NULL, NULL, NULL, NULL);
-}
-VOID __declspec(naked) CPlugin::SendTo12Thunk(void)
-{
-	__asm
-	{
-		pushad
-		pushfd
-		push    dword ptr ds : [esp + 58h]        //tolen
-		push    dword ptr ds : [esp + 58h]        //to
-		push    dword ptr ds : [esp + 58h]        //flags
-		push    dword ptr ds : [esp + 58h]        //len
-		push    dword ptr ds : [esp + 58h]		//buf
-		push    dword ptr ds : [esp + 58h]  		//s
-		call    SendToThunkHandler
-		popfd
-		popad
-		jmp     m_offset12FromSend2
-	}
-}
+//VOID APIENTRY CPlugin::SendToThunkHandler(SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen)
+//{
+//	CContext ctx;
+//	ctx.s = s;
+//	CPacket* packetBuf = new CPacket((LPBYTE)buf, len, ctx);
+//	m_pfnHandleSendProc(*packetBuf);
+//}
+//VOID __declspec(naked) CPlugin::SendTo12Thunk(void)
+//{
+//	__asm
+//	{
+//		pushad
+//		pushfd
+//		push    dword ptr ds : [esp + 58h]        //tolen
+//		push    dword ptr ds : [esp + 58h]        //to
+//		push    dword ptr ds : [esp + 58h]        //flags
+//		push    dword ptr ds : [esp + 58h]        //len
+//		push    dword ptr ds : [esp + 58h]		//buf
+//		push    dword ptr ds : [esp + 58h]  		//s
+//		call    SendToThunkHandler
+//		popfd
+//		popad
+//		jmp     m_offset12FromSend2
+//	}
+//}
 
-int WSAAPI CPlugin::StubRecv(SOCKET s, char* buf, int bufsize, int flag)
+int WSAAPI CPlugin::RecvStub(SOCKET s, char* buf, int bufsize, int flag)
 {
 	int retSize = ((int (WSAAPI *)(SOCKET, char*, int, int))m_offsetRecv)(s, buf, bufsize, flag);
 	if (retSize != 0 && retSize != -1)
 	{
-		m_pfnHandleRecvProc((LPBYTE)buf, retSize);
+		CContext ctx;
+		ctx.s = s;
+		CPacket* packetBuf = new CPacket((LPBYTE)buf, retSize, ctx);
+		packetBuf->SetType(IO_RECV);
+		m_pfnHandleRecvProc(*packetBuf);
 	}
 	return retSize;
 }

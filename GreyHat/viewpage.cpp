@@ -19,7 +19,7 @@ CViewPage::~CViewPage()
 
 }
 
-VOID CViewPage::ShowPacket(HWND hwnd, CPacket* ppkt)
+VOID CViewPage::ShowPacket(HWND hwnd, CPacket& packetBuf)
 {
 	try
 	{
@@ -29,15 +29,15 @@ VOID CViewPage::ShowPacket(HWND hwnd, CPacket* ppkt)
 		LPBYTE lpbRawData;
 		DWORD  dwPacketLen, dwItem;
 
-		lpbRawData = ppkt->GetRawData();
-		dwPacketLen = ppkt->GetDataLen();
+		lpbRawData = packetBuf.GetRawData();
+		dwPacketLen = packetBuf.GetDataLen();
 
 		dwItem = LvGetItemCount( ViewPage.m_hListView );
 		//
 		_stprintf( tszTemp, _T("%d"), dwItem );
 
 		LvInsertItem(ViewPage.m_hListView, tszTemp, dwItem, 1);
-		LvSetData( ViewPage.m_hListView, dwItem, ppkt );
+		LvSetData( ViewPage.m_hListView, dwItem, &packetBuf);
 		
 		//
 		SYSTEMTIME sysTime;
@@ -53,8 +53,8 @@ VOID CViewPage::ShowPacket(HWND hwnd, CPacket* ppkt)
 		LvSetText( ViewPage.m_hListView,(LPTSTR)tstrTemp.c_str(), dwItem, 4 );
 
 
-		_itot(ppkt->GetRemotePort(), tszTemp, 10);
-		tstrTemp = ppkt->GetRemoteIp() + Tstring(_T(":")) + Tstring(tszTemp);
+		_itot(packetBuf.GetRemotePort(), tszTemp, 10);
+		tstrTemp = packetBuf.GetRemoteIp() + Tstring(_T(":")) + Tstring(tszTemp);
 		LvSetText(ViewPage.m_hListView, (LPTSTR)tstrTemp.c_str(), dwItem, 5);
 
 		if (ViewPage.m_bEnableScroll)
@@ -143,7 +143,7 @@ BOOL CViewPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 	InitializeCriticalSection( &ViewPage.m_csPacketListCriticalSection );
 	InitializeCriticalSection( &FilterSettingPage.m_csFilterListCritialSection);
 
-	if (FALSE == ViewPage.m_CoreLib.AttachHookIntoGameProcess(&OnProcessSendData, &OnProcessRecvData))
+	if (FALSE == ViewPage.m_CoreLib.InstallPlugin(&OnProcessSendData, &OnProcessRecvData))
 		MessageBox(NULL, TEXT("安装钩子失败！"), TEXT("错误"), MB_OK);
 
 	//CPluginBase gameBox = new CPlugin;
@@ -180,7 +180,7 @@ BOOL CViewPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 	//	MessageBox(hwnd, _T("Hotkey 'ALT+b' registered, using MOD_NOREPEAT flag\n"), _T("!!"), MB_OK);
 	//}
 
-	CreateDialog(GlobalEnv.hUiInst, MAKEINTRESOURCE(IDD_ST_DIALOG), hwnd, &CFilterSettingPage::FilterPageMessageProc);
+	CreateDialog(GlobalEnv.hUiInst, MAKEINTRESOURCE(IDD_ST_DIALOG), hwnd, &CPacketHelperSettingPage::FilterPageMessageProc);
 
 	ViewPage.m_hUpdateThrd = CreateThread(NULL, NULL,  &CoreLibUpdataThread, NULL, 0, NULL);
 
@@ -403,7 +403,7 @@ BOOL CViewPage::OnWmNotify( HWND hwnd, INT id, LPNMHDR pNMHDR)
 VOID CViewPage::OnWmClose(HWND hwnd)
 {
 	TerminateThread(ViewPage.m_hUpdateThrd, 0);
-	ViewPage.m_CoreLib.DetachHookFromGameProcess();
+	ViewPage.m_CoreLib.UnInstallPlugin();
 	FreePackets();
 
 	UnregisterHexEditorClass( GlobalEnv.hUiInst );
@@ -432,43 +432,26 @@ VOID CViewPage::FreePackets()
 //00 10 00 08 00 0a 00 00 00 00 00 00 00 00 00 00 25 29 f6 04 8f 00 71 50 
 //DWORD dwPlayerId;
 
-VOID CALLBACK CViewPage::OnProcessSendData( SOCKET s, LPBYTE lpBuff, DWORD dwLen, LPVOID Param1, LPVOID Param2, LPVOID Param3, LPVOID Param4 )
+VOID CALLBACK CViewPage::OnProcessSendData( CPacket& packetBuf )
 {
 	EnterCriticalSection( &ViewPage.m_csPacketListCriticalSection );
 
-
-	//构造 CPacket
-	CPacket *ppkt;
-	DISPATCH_CONTEXT DispatchContext;
-	DispatchContext.sock = s;
-	DispatchContext.param1 = Param1;
-	DispatchContext.param2 = Param2;
-	DispatchContext.param3 = Param3;
-	DispatchContext.param4 = Param4;
-	ppkt = new CPacket(lpBuff, dwLen, &DispatchContext);
-	ppkt->SetType(IO_SEND);
 	if (ViewPage.m_bShowSend == FALSE)
-		ppkt->SetSkipFlag(TRUE);
+		packetBuf.SetSkipFlag(TRUE);
 	//////////////////////////////////////////////////////////////////////////
 
-	ProcessPacket(ppkt);//处理包，包括替换
+	ProcessPacket(packetBuf);//处理包，包括替换
 
-	if ( (ppkt->IsSkipped() == TRUE /*&& ViewPage.m_bEnableFilter*/) || 
+	if ( (packetBuf.IsSkipped() == TRUE /*&& ViewPage.m_bEnableFilter*/) ||
 		ViewPage.m_bEnbleGrab == FALSE )//skip掉或者没截包，则删除该包
 	{
-		delete ppkt;
+		delete &packetBuf;
 		LeaveCriticalSection( &ViewPage.m_csPacketListCriticalSection );
 		return;
 	}
 
-	ViewPage.m_DispatchContext.sock   = s;
-	ViewPage.m_DispatchContext.param1 = Param1;
-	ViewPage.m_DispatchContext.param2 = Param2;
-	ViewPage.m_DispatchContext.param3 = Param3;
-	ViewPage.m_DispatchContext.param4 = Param4;
 
-
-	ShowPacket(ViewPage.m_hWnd, ppkt);
+	ShowPacket(ViewPage.m_hWnd, packetBuf);
 	if ( ViewPage.m_bEnableBlock )//如果是block 模式
 	{
 		HexEdit_SetReadOnly(ViewPage.m_hHexView, FALSE);//EnableWindow(ViewPage.m_hHexView, TRUE);//GetDlgItem(ViewPage.m_hWnd,IDC_PACKETLST)
@@ -477,39 +460,37 @@ VOID CALLBACK CViewPage::OnProcessSendData( SOCKET s, LPBYTE lpBuff, DWORD dwLen
 		EnableWindow(GetDlgItem(ViewPage.m_hWnd, IDC_BPASS), FALSE);
 		//MessageBox(NULL, text("修改完了点确定"), text("有数据来了~~"), MB_OK);
 		HexEdit_SetReadOnly(ViewPage.m_hHexView, TRUE);//EnableWindow(ViewPage.m_hHexView, FALSE);//EnableWindow(GetDlgItem(ViewPage.m_hWnd,IDC_PACKETLST), TRUE);
-		HexEdit_CopyBuffer( ViewPage.m_hHexView, ppkt->GetRawData(), ppkt->GetDataLen() );
+		HexEdit_CopyBuffer( ViewPage.m_hHexView, packetBuf.GetRawData(), packetBuf.GetDataLen() );
 	}
 
 	LeaveCriticalSection( &ViewPage.m_csPacketListCriticalSection );
 
 }
 
-VOID CALLBACK CViewPage::OnProcessRecvData( unsigned char* pbuf, unsigned long nlen )
+VOID CALLBACK CViewPage::OnProcessRecvData(CPacket& packetBuf)
 {
 	EnterCriticalSection( &ViewPage.m_csPacketListCriticalSection );
 
 	if (ViewPage.m_bEnbleGrab)
 	{
-		CPacket *ppkt = new CPacket(pbuf, nlen, null);
-		ppkt->SetType(IO_RECV);
 		if (ViewPage.m_bShowRecv == FALSE)
-			ppkt->SetSkipFlag(TRUE);
+			packetBuf.SetSkipFlag(TRUE);
 
-		if ((ppkt->IsSkipped() == TRUE /*&& ViewPage.m_bEnableFilter*/) ||
+		if ((packetBuf.IsSkipped() == TRUE /*&& ViewPage.m_bEnableFilter*/) ||
 			ViewPage.m_bEnbleGrab == FALSE)//skip掉或者没截包，则删除该包
 		{
-			delete ppkt;
+			delete &packetBuf;
 			LeaveCriticalSection(&ViewPage.m_csPacketListCriticalSection);
 			return;
 		}
 
-		ShowPacket(ViewPage.m_hWnd, ppkt);
+		ShowPacket(ViewPage.m_hWnd, packetBuf);
 		if (ViewPage.m_bEnableBlock)
 		{
 			HexEdit_SetReadOnly(ViewPage.m_hHexView, FALSE);
 			WaitForSingleObject( ViewPage.m_hBlockEvent, INFINITE );
 			HexEdit_SetReadOnly(ViewPage.m_hHexView, TRUE);
-			HexEdit_CopyBuffer( ViewPage.m_hHexView, ppkt->GetRawData(), ppkt->GetDataLen() );
+			HexEdit_CopyBuffer( ViewPage.m_hHexView, packetBuf.GetRawData(), packetBuf.GetDataLen() );
 		}
 	}
 
@@ -517,23 +498,23 @@ VOID CALLBACK CViewPage::OnProcessRecvData( unsigned char* pbuf, unsigned long n
 }
 
 
-VOID CViewPage::ProcessPacket(CPacket* pPacket)
+VOID CViewPage::ProcessPacket(CPacket& packetBuf)
 {
-	CFilter *pFilter;
-	list<CFilter*>::iterator itr;
+	CPacketHelper *pFilter;
+	list<CPacketHelper*>::iterator itr;
 	EnterCriticalSection( &FilterSettingPage.m_csFilterListCritialSection );
 	
 	for (itr = FilterSettingPage.m_lstFilterList.begin(); itr != FilterSettingPage.m_lstFilterList.end();  ++itr)
 	{
 		if (ViewPage.m_bEnableReplace)
 		{
-			(*itr)->ReplacePacketData(pPacket);
+			(*itr)->ReplacePacketData(packetBuf);
 		}
 		
 
-		if ( (*itr)->IsPacketFiltered(pPacket) )
+		if ( (*itr)->IsPacketFiltered(packetBuf) )
 		{
-			pPacket->SetSkipFlag(TRUE);
+			packetBuf.SetSkipFlag(TRUE);
 			break;
 		}
 	}

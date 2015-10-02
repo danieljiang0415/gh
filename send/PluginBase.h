@@ -2,9 +2,11 @@
 
 #include <WinSock2.h>
 
-typedef VOID (WINAPI*SENDPROCHANDLER)(SOCKET, CONST CHAR*, DWORD, LPARAM, LPARAM, LPARAM, LPARAM);
-typedef VOID (WINAPI*RECVPROCHANDLER)(LPBYTE, DWORD);
 class CPacket;
+
+typedef VOID (WINAPI*SENDPROCHANDLER)(CPacket& packetBuf);
+typedef VOID (WINAPI*RECVPROCHANDLER)(CPacket& packetBuf);
+
 class CPluginBase
 {
 public:

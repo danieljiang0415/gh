@@ -318,12 +318,12 @@ VOID CSendPage:: OnButtonSend(DWORD dwButtonId)
 
 
 			CPacket* pPacket = (CPacket*)GetWindowLongPtr(GetDlgItem(SendPage.m_hWnd,SendPage.m_CtrlTable[dwIndex].dwEditBoxId), GWL_USERDATA);
-			if (pPacket)
+
+			CPacket* packetBuf = new CPacket(lpHexBuf, dwLen, pPacket->GetContext());
+			if (packetBuf)
 			{
-				CCoreLib::SendData2GameServer( lpHexBuf, dwLen,  pPacket->GetDispatchContext());
-			}else
-			{
-				CCoreLib::SendData2GameServer( lpHexBuf, dwLen,  &ViewPage.m_DispatchContext);
+				CCoreLib::SendData( *packetBuf);
+				delete packetBuf;
 			}
 			delete[]lpHexBuf;
 		}

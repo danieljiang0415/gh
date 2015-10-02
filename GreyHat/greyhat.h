@@ -83,8 +83,8 @@ struct GLOBAL_ENV{
 
 	ATTACHPROCESS		pfnAttachProcess;
 	DETACHPROCESS		pfnDetachProcess;
-	DISPATCHGAMEDATA	pfnDispatchGameData;
-	SETGLOBALENV			pfnSetGlobalEnvironment;
+	DISPATCHGAMEDATA	pfnDispatchPacket;
+	//SETGLOBALENV			pfnSetGlobalEnvironment;
 
 };
 

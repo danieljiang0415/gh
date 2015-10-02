@@ -13,8 +13,8 @@ public:
 
 	static BOOL OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam);
 	static VOID SetFont(HWND hParentWnd, HFONT hfont);
-	static VOID ProcessPacket(CPacket* pPacket);
-	static VOID CViewPage::ShowPacket(HWND hwnd, CPacket* ppkt);
+	static VOID ProcessPacket(CPacket& packetBuf);
+	static VOID CViewPage::ShowPacket(HWND hwnd, CPacket& packetBuf);
 	static INT_PTR CALLBACK CViewPage::ViewPageProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam );
 	static BOOL IsButtonChecked(HWND hctrl);
 	static VOID OnWmCommand( HWND hWnd, int id, HWND hWndCtl, UINT codeNotify );
@@ -22,8 +22,8 @@ public:
 	static VOID OnWmClose(HWND hwnd);
 	static VOID OnWMSize( HWND hWnd, UINT state, int cx, int cy );
 	static VOID FreePackets();
-	static VOID CALLBACK OnProcessSendData( SOCKET s, LPBYTE lpBuff, DWORD dwLen, LPVOID Param1, LPVOID Param2, LPVOID Param3, LPVOID Param4 );
-	static VOID CALLBACK OnProcessRecvData( unsigned char* pbuf, unsigned long nlen );
+	static VOID CALLBACK OnProcessSendData(CPacket& packetBuf);
+	static VOID CALLBACK OnProcessRecvData(CPacket& packetBuf);
 	static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam);
 	static DWORD CALLBACK CoreLibUpdataThread(LPVOID lpParam);
 
@@ -38,7 +38,7 @@ public:
 	CRITICAL_SECTION m_csPacketListCriticalSection;
 
 	CCoreLib     m_CoreLib;
-	DISPATCH_CONTEXT m_DispatchContext;
+	//DISPATCH_CONTEXT m_DispatchContext;
 	HANDLE      m_hUpdateThrd;
 
 public:

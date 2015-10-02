@@ -25,10 +25,10 @@ private:
 	static VOID SendTo12Thunk();
 	static VOID Thunk();
 
-	static VOID APIENTRY SendThunkHandler(SOCKET s, const char* buf, int nlen);
-	static VOID APIENTRY WSASendThunkHandler(SOCKET s, LPWSABUF lpBuffers, DWORD dwBufferCount);
-	static VOID APIENTRY SendToThunkHandler(SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen);
-	static int WSAAPI StubRecv(SOCKET s, char* buf, int bufsize, int flag);
+	static VOID APIENTRY SendStub(SOCKET s, const char* buf, int nlen);
+	static VOID APIENTRY WSASendStub(SOCKET s, LPWSABUF lpBuffers, DWORD dwBufferCount);
+	//static VOID APIENTRY SendToThunkHandler(SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen);
+	static int WSAAPI RecvStub(SOCKET s, char* buf, int bufsize, int flag);
 
 private:
 	static ULONG m_offset12FromSend;

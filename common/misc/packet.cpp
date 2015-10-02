@@ -21,7 +21,6 @@ CPacket::CPacket(LPBYTE lpBuff, DWORD dwLen, CContext& ctx)
 
 	if (ctx.s != INVALID_SOCKET)
 	{
-		m_Context = ctx;
 		sockaddr_in sin;
 		int sinlen = sizeof( sin );
 		if ( 0 == getpeername( ctx.s,  ( sockaddr* ) &sin,   &sinlen ) )
@@ -181,17 +180,17 @@ VOID CPacketHelper::SetAdvFilterStr(Tstring& tstrAdvFilterStr)
 }
 
 
-BOOL CPacketHelper::IsPacketFiltered(CPacket* pPacket)
+BOOL CPacketHelper::IsPacketFiltered(CPacket& packetBuf)
 {
 	//1, ÆÕÍ¨¹ýÂË
 	DWORD dwKeyWordSize, dwHexBuffSize, dwPacketSize,dwPacketPort, dwReplaceDataSize;
 	LPBYTE lpKeyWordBuffer, lpPacketData, lpMatch, lpReplaceData;
 	LPCTSTR lpstrPacketIp;
 
-	lpPacketData = pPacket->GetRawData();
-	dwPacketSize = pPacket->GetDataLen();
-	dwPacketPort = pPacket->GetRemotePort();
-	lpstrPacketIp = pPacket->GetRemoteIp().c_str();
+	lpPacketData = packetBuf.GetRawData();
+	dwPacketSize = packetBuf.GetDataLen();
+	dwPacketPort = packetBuf.GetRemotePort();
+	lpstrPacketIp = packetBuf.GetRemoteIp().c_str();
 
 
 	if (m_tstrKeyWords != _T("") && m_tstrReplaceData == _T(""))
@@ -261,7 +260,7 @@ BOOL CPacketHelper::IsPacketFiltered(CPacket* pPacket)
 	return FALSE;
 }
 
-BOOL CPacketHelper::ReplacePacketData(CPacket* pPacket)
+BOOL CPacketHelper::ReplacePacketData(CPacket& packetBuf)
 {
 	DWORD dwKeyWordSize, dwHexBuffSize, dwPacketSize, dwReplaceDataSize;
 	LPBYTE lpKeyWordData, lpPacketData, lpMatch, lpReplaceData;
@@ -274,8 +273,8 @@ BOOL CPacketHelper::ReplacePacketData(CPacket* pPacket)
 		dwKeyWordSize		= Utility::StringLib::Tstring2Hex(m_tstrKeyWords.c_str(), lpKeyWordData);
 		dwReplaceDataSize	= Utility::StringLib::Tstring2Hex(m_tstrReplaceData.c_str(), lpReplaceData);
 
-		lpPacketData = pPacket->GetRawData();
-		dwPacketSize = pPacket->GetDataLen();
+		lpPacketData = packetBuf.GetRawData();
+		dwPacketSize = packetBuf.GetDataLen();
 
 		lpMatch = SearchKeyWord(lpPacketData, dwPacketSize, lpKeyWordData, dwKeyWordSize);
 		if (lpMatch) {
