@@ -1,0 +1,294 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Chinese (Simplified, PRC) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+TRANSMIT MENU
+BEGIN
+    POPUP "Transmit"
+    BEGIN
+        MENUITEM "-->1:",                       IDC_MS1
+        MENUITEM "-->2:",                       IDC_MS2
+        MENUITEM "-->3:",                       IDC_MS3
+        MENUITEM "-->4:",                       IDC_MS4
+        MENUITEM "-->5:",                       IDC_MS5
+        MENUITEM "-->6:",                       IDC_MS6
+        MENUITEM "-->7:",                       IDC_MS7
+        MENUITEM "-->8:",                       IDC_MS8
+        MENUITEM "-->9:",                       IDC_MS9
+        MENUITEM "-->10:",                      IDC_MS10
+        MENUITEM "-->11:",                      IDC_MS11
+        MENUITEM "-->12:",                      IDC_MS12
+        MENUITEM "-->13:",                      IDC_MS13
+        MENUITEM "-->14:",                      IDC_MS14
+        MENUITEM "-->15:",                      IDC_MS15
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON_BIG            ICON                    "res\\300.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_MAINDIALOG, DIALOG
+    BEGIN
+    END
+
+    IDD_HEXDLG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 284
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 141
+    END
+
+    IDD_PK_DIALOG, DIALOG
+    BEGIN
+    END
+
+    IDD_FILTERPAGE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 247
+        VERTGUIDE, 26
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 196
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_MAINDIALOG DIALOGEX 0, 0, 369, 394
+STYLE DS_SETFONT | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+EXSTYLE WS_EX_TOPMOST
+CAPTION "1.0"
+FONT 8, "Consolas", 400, 0, 0x0
+BEGIN
+    CONTROL         "",IDC_PAGE_TAB,"SysTabControl32",0x0,0,0,368,393
+END
+
+IDD_HEXDLG DIALOGEX 0, 0, 291, 148
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CENTER | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "HexEdit"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "开始递进",IDC_BTN_STARTSTEP,56,127,50,14
+    PUSHBUTTON      "重置",IDC_BTN_RESTORE,147,127,50,14
+END
+
+IDD_SD_DIALOG DIALOGEX 0, 0, 355, 375
+STYLE DS_SETFONT | WS_CHILD | WS_SYSMENU
+FONT 8, "Consolas", 400, 0, 0x0
+BEGIN
+    EDITTEXT        IDC_SE1,36,10,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE2,36,27,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE3,36,44,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE4,36,61,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE5,36,78,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE6,36,95,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE7,36,112,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE8,36,129,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE9,36,146,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE10,36,163,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE11,36,180,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE12,36,197,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE13,36,214,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE14,36,231,310,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SE15,36,248,310,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "SB1",IDC_SB1,2,9,33,15
+    PUSHBUTTON      "SB2",IDC_SB2,2,26,33,15
+    PUSHBUTTON      "SB3",IDC_SB3,2,43,33,15
+    PUSHBUTTON      "SB4",IDC_SB4,2,60,33,15
+    PUSHBUTTON      "SB5",IDC_SB5,2,77,33,15
+    PUSHBUTTON      "SB6",IDC_SB6,2,94,33,15
+    PUSHBUTTON      "SB7",IDC_SB7,2,111,33,15
+    PUSHBUTTON      "SB8",IDC_SB8,2,128,33,15
+    PUSHBUTTON      "SB9",IDC_SB9,2,145,33,15
+    PUSHBUTTON      "SB10",IDC_SB10,2,162,33,15
+    PUSHBUTTON      "SB11",IDC_SB11,2,179,33,15
+    PUSHBUTTON      "SB12",IDC_SB12,2,196,33,15
+    PUSHBUTTON      "SB13",IDC_SB13,2,213,33,15
+    PUSHBUTTON      "SB14",IDC_SB14,2,230,33,15
+    PUSHBUTTON      "SB15",IDC_SB15,2,247,33,15
+    GROUPBOX        "单独发送",IDC_STATIC,0,0,352,268
+    GROUPBOX        "连续发送",IDC_STATIC,0,269,352,83
+    CONTROL         "@1",IDC_SC1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,282,21,10
+    CONTROL         "@2",IDC_SC2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,36,282,21,10
+    CONTROL         "@3",IDC_SC3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,65,282,21,10
+    CONTROL         "@4",IDC_SC4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,94,282,21,10
+    CONTROL         "@5",IDC_SC5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,121,282,21,10
+    CONTROL         "@6",IDC_SC6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,150,282,21,10
+    CONTROL         "@7",IDC_SC7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,177,282,21,10
+    CONTROL         "@8",IDC_SC8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,204,282,21,10
+    CONTROL         "@9",IDC_SC9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,231,282,21,10
+    CONTROL         "@10",IDC_SC10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,258,282,25,10
+    CONTROL         "@11",IDC_SC11,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,295,25,10
+    CONTROL         "@12",IDC_SC12,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,36,295,26,10
+    CONTROL         "@13",IDC_SC13,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,65,295,25,10
+    CONTROL         "@14",IDC_SC14,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,93,295,25,10
+    CONTROL         "@15",IDC_SC15,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,295,25,10
+    GROUPBOX        "",IDC_STATIC,2,274,307,37
+    PUSHBUTTON      "连续循环N次发送",IDC_SBN,217,292,66,14
+    GROUPBOX        "脚本",IDC_STATIC,2,310,307,35
+    LTEXT           "脚本文件",IDC_STATIC,10,327,33,8
+    EDITTEXT        IDC_EDIT3,47,324,181,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_LSB,233,323,22,14
+    PUSHBUTTON      "执行脚本",IDC_RUN_SB,257,323,47,14
+    PUSHBUTTON      "保存",IDC_SB_STOR,311,323,37,14
+    PUSHBUTTON      "清空",IDC_SB_CLEAR,311,293,37,14
+    EDITTEXT        IDC_E_ROUND,183,293,28,14,ES_AUTOHSCROLL
+    LTEXT           "N=",IDC_STATIC,173,295,9,8
+END
+
+IDD_PK_DIALOG DIALOGEX 0, 0, 368, 375
+STYLE DS_SETFONT | WS_CHILD | WS_SYSMENU
+FONT 8, "Consolas", 400, 0, 0x0
+BEGIN
+    GROUPBOX        "数据",IDC_SGROUP,3,0,362,369
+    CONTROL         "",IDC_PACKETLST,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,6,18,357,195
+    CONTROL         "阻塞",IDC_ENABLE_BLOCK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,125,215,25,10
+    CONTROL         "日志",IDC_ENABLE_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,8,32,10
+    CONTROL         "自动滚屏",IDC_ATO_SCROLL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,186,7,48,10
+    CONTROL         "过滤",IDC_ENABLE_FILTER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,215,26,10
+    CONTROL         "替换",IDC_ENABLE_REPLACE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,36,214,32,10
+    PUSHBUTTON      "设置",IDC_BSF,69,213,50,14
+    CONTROL         "暂停",IDC_CSTPF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,265,215,28,10
+    PUSHBUTTON      "清空列表",IDC_BCLE,305,212,50,14
+    PUSHBUTTON      "字体",IDC_BFONT,311,5,50,14
+    CONTROL         "自动显示包体",IDC_AUTOSHOWCONTENT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,233,6,59,10
+    PUSHBUTTON      "放行",IDC_BPASS,151,213,62,14
+    CONTROL         "SEND",IDC_SHOWSEND,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,46,6,32,10
+    CONTROL         "RECV",IDC_SHOWRECV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,90,6,32,10
+END
+
+IDD_FILTERPAGE DIALOGEX 0, 0, 254, 203
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "过滤替换设置"
+FONT 8, "Consolas", 400, 0, 0x0
+BEGIN
+    CONTROL         "",IDC_FILTERLISTCTRL,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,7,240,81
+    GROUPBOX        "普通过滤替换",IDC_STATIC,11,89,229,42
+    PUSHBUTTON      "添加",IDC_BADD,43,177,50,14
+    EDITTEXT        IDC_EKEYWORD,57,98,138,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EREPLACE,57,113,138,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "删除",IDC_BDEL,109,177,50,14
+    LTEXT           "关键字：",IDC_STATIC,26,101,33,8
+    LTEXT           "替换：",IDC_STATIC,26,117,25,8
+    GROUPBOX        "高级过滤",IDC_STATIC,11,133,229,40
+    EDITTEXT        IDC_EADVFILTER,26,157,200,14,ES_AUTOHSCROLL
+    LTEXT           "ex:L=10|01=CC|03=40|FF=33|IP=127.0.0.1|P=80",IDC_STATIC,28,144,196,8
+    PUSHBUTTON      "清空",IDC_F_BCLEAR,175,177,50,14
+END
+
+IDD_STEP DIALOGEX 0, 0, 111, 15
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "步进该封包数据"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "开始步进",IDOK,0,0,50,14
+    PUSHBUTTON      "停止步进",IDCANCEL,61,0,50,14
+END
+
+IDD_STEPNUM DIALOGEX 0, 0, 168, 17
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,112,0,50,17
+    LTEXT           "每次递进",IDC_STATIC,3,4,34,8
+    EDITTEXT        IDC_E_STEP,43,2,60,14,ES_AUTOHSCROLL
+END
+
+#endif    // Chinese (Simplified, PRC) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
