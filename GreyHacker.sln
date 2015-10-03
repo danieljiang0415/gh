@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "send", "send\send.vcxproj", "{F4A8AC78-83D6-4A7E-B75A-84146C6EB517}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GreyHat", "GreyHat\greyhat.vcxproj", "{4E7551F8-1206-4BD3-AD08-ADAFFCEFD94B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin", "Plugin\Plugin.vcxproj", "{5AC91B44-0117-4EFD-B9DD-2FAABBFB178E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,18 +14,18 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F4A8AC78-83D6-4A7E-B75A-84146C6EB517}.Check|Win32.ActiveCfg = Check|Win32
-		{F4A8AC78-83D6-4A7E-B75A-84146C6EB517}.Check|Win32.Build.0 = Check|Win32
-		{F4A8AC78-83D6-4A7E-B75A-84146C6EB517}.Debug|Win32.ActiveCfg = Debug|Win32
-		{F4A8AC78-83D6-4A7E-B75A-84146C6EB517}.Debug|Win32.Build.0 = Debug|Win32
-		{F4A8AC78-83D6-4A7E-B75A-84146C6EB517}.Release|Win32.ActiveCfg = Release|Win32
-		{F4A8AC78-83D6-4A7E-B75A-84146C6EB517}.Release|Win32.Build.0 = Release|Win32
 		{4E7551F8-1206-4BD3-AD08-ADAFFCEFD94B}.Check|Win32.ActiveCfg = Check|Win32
 		{4E7551F8-1206-4BD3-AD08-ADAFFCEFD94B}.Check|Win32.Build.0 = Check|Win32
 		{4E7551F8-1206-4BD3-AD08-ADAFFCEFD94B}.Debug|Win32.ActiveCfg = Debug|Win32
 		{4E7551F8-1206-4BD3-AD08-ADAFFCEFD94B}.Debug|Win32.Build.0 = Debug|Win32
 		{4E7551F8-1206-4BD3-AD08-ADAFFCEFD94B}.Release|Win32.ActiveCfg = Release|Win32
 		{4E7551F8-1206-4BD3-AD08-ADAFFCEFD94B}.Release|Win32.Build.0 = Release|Win32
+		{5AC91B44-0117-4EFD-B9DD-2FAABBFB178E}.Check|Win32.ActiveCfg = Check|Win32
+		{5AC91B44-0117-4EFD-B9DD-2FAABBFB178E}.Check|Win32.Build.0 = Check|Win32
+		{5AC91B44-0117-4EFD-B9DD-2FAABBFB178E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5AC91B44-0117-4EFD-B9DD-2FAABBFB178E}.Debug|Win32.Build.0 = Debug|Win32
+		{5AC91B44-0117-4EFD-B9DD-2FAABBFB178E}.Release|Win32.ActiveCfg = Release|Win32
+		{5AC91B44-0117-4EFD-B9DD-2FAABBFB178E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

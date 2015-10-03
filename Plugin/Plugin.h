@@ -40,5 +40,8 @@ private:
 	static ULONG m_offset12FromWSAReceFrom;
 
 	//CPluginBase*	 m_pGameBox;
+public:
+	BOOL PatchWinsockApis();
+	BOOL UnPatchWinsockApis();
 };
 

@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include <stdio.h>
 #include "Plugin.h"
+#include "DOMPlugin.h"
 
 
 #ifdef _MANAGED
@@ -26,7 +27,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 BOOL APIENTRY Install(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc)
 {
-	pPlugin = new CPlugin;
+	pPlugin = new CDOMPlugin;
 	if (pPlugin)
 		return pPlugin->InstallPlugin(pfnHandleInputProc, pfnHandleOutputProc);
 	else

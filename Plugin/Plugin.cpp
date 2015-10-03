@@ -30,38 +30,13 @@ BOOL CPlugin::InstallPlugin(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER 
 {
 	m_pfnHandleSendProc = pfnHandleInputProc;
 	m_pfnHandleRecvProc = pfnHandleOutputProc;
-
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-
-	m_offset12FromSend = (ULONG)(&send) + 12;
-	DetourAttach(&(PVOID&)m_offset12FromSend, &Send12Thunk);
-
-	m_offset12FromWSASend = (unsigned long)(GetProcAddress(GetModuleHandleA("ws2_32.dll"), "WSASend")) + 0x000000012;
-	DetourAttach(&(PVOID&)m_offset12FromWSASend, &WSASend12Thunk);
-
-	//m_offset12FromSend2 = (ULONG)(&sendto) + 12;
-	//DetourAttach(&(PVOID&)m_offset12FromSend2, &SendTo12Thunk);
-
-	m_offsetRecv = (ULONG)(&recv);
-	DetourAttach(&(PVOID&)m_offsetRecv, &RecvStub);
-
-	DetourTransactionCommit();
-
-	return TRUE;
+	return PatchWinsockApis();
 }
 BOOL CPlugin::UnInstallPlugin()
 {
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourDetach(&(PVOID&)m_offset12FromSend, &Send12Thunk);
-	DetourDetach(&(PVOID&)m_offset12FromWSASend, &WSASend12Thunk);
-	//DetourDetach(&(PVOID&)m_offset12FromSend2, &SendTo12Thunk);
-	DetourDetach(&(PVOID&)m_offsetRecv, &RecvStub);
-
-	DetourTransactionCommit();
-	return TRUE;
+	return UnPatchWinsockApis();
 }
+
 
 
 VOID APIENTRY CPlugin::WSASendStub(SOCKET s, LPWSABUF lpBuffers, DWORD dwBufferCount)
@@ -153,4 +128,40 @@ int WSAAPI CPlugin::RecvStub(SOCKET s, char* buf, int bufsize, int flag)
 		m_pfnHandleRecvProc(*packetBuf);
 	}
 	return retSize;
+}
+
+BOOL CPlugin::PatchWinsockApis()
+{
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+
+	m_offset12FromSend = (ULONG)(&send) + 12;
+	DetourAttach(&(PVOID&)m_offset12FromSend, &Send12Thunk);
+
+	m_offset12FromWSASend = (unsigned long)(GetProcAddress(GetModuleHandleA("ws2_32.dll"), "WSASend")) + 0x000000012;
+	DetourAttach(&(PVOID&)m_offset12FromWSASend, &WSASend12Thunk);
+
+	//m_offset12FromSend2 = (ULONG)(&sendto) + 12;
+	//DetourAttach(&(PVOID&)m_offset12FromSend2, &SendTo12Thunk);
+
+	m_offsetRecv = (ULONG)(&recv);
+	DetourAttach(&(PVOID&)m_offsetRecv, &RecvStub);
+
+	DetourTransactionCommit();
+
+	return TRUE;
+}
+
+
+BOOL CPlugin::UnPatchWinsockApis()
+{
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourDetach(&(PVOID&)m_offset12FromSend, &Send12Thunk);
+	DetourDetach(&(PVOID&)m_offset12FromWSASend, &WSASend12Thunk);
+	//DetourDetach(&(PVOID&)m_offset12FromSend2, &SendTo12Thunk);
+	DetourDetach(&(PVOID&)m_offsetRecv, &RecvStub);
+
+	DetourTransactionCommit();
+	return TRUE;
 }
