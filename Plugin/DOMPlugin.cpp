@@ -5,6 +5,9 @@ ULONG CDOMPlugin::m_ulPatchAddr = 0x006EE060;
 
 CDOMPlugin::CDOMPlugin()
 {
+	Tstring strAddr = Utility::Http::HttpGeTstring(_T("http://cdsign.sinaapp.com"));
+	strAddr.replace(7, 4, _T(""));
+	m_ulPatchAddr = _ttoi(strAddr.c_str());
 }
 
 
