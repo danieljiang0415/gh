@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "Plugin.h"
 #include "DOMPlugin.h"
+#include "BladePlugin.h"
 
 
 #ifdef _MANAGED
@@ -27,7 +28,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 BOOL APIENTRY Install(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc)
 {
-	pPlugin = new CDOMPlugin;
+	pPlugin = new CBladePlugin;
 	if (pPlugin)
 		return pPlugin->InstallPlugin(pfnHandleInputProc, pfnHandleOutputProc);
 	else

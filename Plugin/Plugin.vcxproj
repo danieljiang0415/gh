@@ -107,9 +107,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\misc\dbghook.cpp" />
     <ClCompile Include="..\common\misc\packet.cpp" />
     <ClCompile Include="..\common\misc\utility.cpp" />
-    <ClCompile Include="corelib.cpp" />
+    <ClCompile Include="BladePlugin.cpp" />
+    <ClCompile Include="Entry.cpp" />
     <ClCompile Include="DOMPlugin.cpp" />
     <ClCompile Include="PluginBase.cpp" />
     <ClCompile Include="Plugin.cpp" />
@@ -122,9 +124,11 @@
     <None Include="exports.def" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\misc\dbghook.h" />
     <ClInclude Include="..\common\misc\packet.h" />
     <ClInclude Include="..\common\misc\utility.h" />
     <ClInclude Include="..\PathOfExile\stdafx.h" />
+    <ClInclude Include="BladePlugin.h" />
     <ClInclude Include="DOMPlugin.h" />
     <ClInclude Include="PluginBase.h" />
     <ClInclude Include="Plugin.h" />

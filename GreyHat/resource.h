@@ -123,6 +123,8 @@
 #define IDC_SGROUP                      1149
 #define IDC_SHOWSEND                    1150
 #define IDC_SHOWRECV                    1151
+#define IDC_BUTTON2                     1152
+#define IDC_BTN_START                   1152
 #define IDC_POPMENU_M1                  1170
 #define IDC_POPMENU_M2                  1171
 #define IDC_POPMENU_M3                  1172
@@ -172,7 +174,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        174
 #define _APS_NEXT_COMMAND_VALUE         32811
-#define _APS_NEXT_CONTROL_VALUE         1151
+#define _APS_NEXT_CONTROL_VALUE         1153
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif
