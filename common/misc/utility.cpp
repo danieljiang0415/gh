@@ -630,7 +630,7 @@ exit_proc:
 			GetModuleFileName(hMod, szModName, nSize);
 
 			pName = PathFindFileName(szModName);
-			_tcscpy(lpFileName, pName);
+			_tcsncpy_s(lpFileName, _tcslen(pName), pName, MAX_PATH);
 		}
 
 
