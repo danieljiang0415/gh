@@ -28,7 +28,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 BOOL APIENTRY Install(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc)
 {
-	pPlugin = new CBladePlugin;
+	pPlugin = new CPlugin;
 	if (pPlugin)
 		return pPlugin->InstallPlugin(pfnHandleInputProc, pfnHandleOutputProc);
 	else

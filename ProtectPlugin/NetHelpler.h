@@ -2,6 +2,7 @@
 
 #include<string>
 #include<vector>
+#include<winsock2.h>
 
 #ifndef _UNICODE
 	#define Tstring std::string

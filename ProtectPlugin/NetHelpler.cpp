@@ -7,7 +7,7 @@
 
 #pragma comment(lib, "Ws2_32.lib")      // Socket编程需用的动态链接库  
 #pragma comment(lib, "Kernel32.lib")    // IOCP需要用到的动态链接库  
-
+#define MAX_TCP_LENTH	1600
 
 DWORD WINAPI ServerWorkThread(LPVOID CompletionPortID);
 DWORD WINAPI ServerSendThread(LPVOID IpParam);
@@ -143,7 +143,7 @@ DWORD WINAPI CNetHelpler::AcceptThread(LPVOID lpParameter) {
 		LPPER_IO_OPERATION_DATA PerIoData = NULL;
 		PerIoData = (LPPER_IO_OPERATION_DATA)GlobalAlloc(GPTR, sizeof(PER_IO_OPERATEION_DATA));
 		ZeroMemory(&(PerIoData->overlapped), sizeof(OVERLAPPED));
-		PerIoData->databuff.len = 1024;
+		PerIoData->databuff.len = MAX_TCP_LENTH;
 		PerIoData->databuff.buf = PerIoData->buffer;
 		PerIoData->operationType = 0;    // read  
 
@@ -188,7 +188,7 @@ DWORD WINAPI CNetHelpler::WorkerThread(LPVOID lpParam)
 
 		// 为下一个重叠调用建立单I/O操作数据  
 		ZeroMemory(&(PerIoData->overlapped), sizeof(OVERLAPPED)); // 清空内存  
-		PerIoData->databuff.len = 1024;
+		PerIoData->databuff.len = MAX_TCP_LENTH;
 		PerIoData->databuff.buf = PerIoData->buffer;
 		PerIoData->operationType = 0;    // read  
 		WSARecv(PerHandleData->socket, &(PerIoData->databuff), 1, &RecvBytes, &Flags, &(PerIoData->overlapped), NULL);
