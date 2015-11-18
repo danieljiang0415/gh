@@ -20,9 +20,32 @@ CGameGuardHelper::~CGameGuardHelper()
 {
 }
 
+#if 1
+HMODULE (WINAPI* g_pfnLoadLibraryW)(LPCWSTR lpLibFileName);
+HMODULE WINAPI Proxy_LoadLibraryW(LPCWSTR lpLibFileName)
+{
+	MessageBoxW( NULL, lpLibFileName,L"Info", MB_YESNO );
+	//Utility::Log::XLogDbgStr(_T("--> Proxy_LoadLibraryW --> "));
+	//if (StrStrIW(lpLibFileName, L"ws2_32.dll"))
+	//{
+	//	if ( IDNO == MessageBoxW( NULL, lpLibFileName,L"Info", MB_YESNO ))
+	//	{
+	//		return NULL;
+	//	}
+	//}
+	return g_pfnLoadLibraryW(lpLibFileName);
+}
+#endif
 
 BOOL CGameGuardHelper::Initialize()
 {
+#if 1
+	g_pfnLoadLibraryW = (HMODULE(WINAPI* )(LPCWSTR lpLibFileName))GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "LoadLibraryW");
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourAttach(&(PVOID&)g_pfnLoadLibraryW, Proxy_LoadLibraryW);
+	DetourTransactionCommit();
+#endif
 	BYTE signCheckNPGameMon[] = { 0x85, 0xC9, 0x75, 0x03, 0x33, 0xC0, 0xC3, 0xE9 };
 	BYTE signCloseNPGameMon[] = { 0x00 };
 	BYTE signInitNPGameMon[] = { 0x85, 0xC9, 0x75, 0x03, 0x33, 0xC0, 0xC3, 0xE9 };
@@ -31,6 +54,10 @@ BOOL CGameGuardHelper::Initialize()
 
 
 	m_sfpnCheckNPGameMon = (CHECKNPGAMEMON)Utility::Memory::SearchInModuleImage( GetModuleHandle(NULL), signCheckNPGameMon, sizeof(signCheckNPGameMon));
+	m_spfnPreInitNPGameMonA = (PREINITNPGAMEMONA)Utility::Memory::SearchInModuleImage(GetModuleHandle(NULL), signPreInitNPGameMonA, sizeof(signPreInitNPGameMonA));
+	m_spfnInitNPGameMon = (INITNPGAMEMON)Utility::Memory::SearchInModuleImage(GetModuleHandle(NULL), signInitNPGameMon, sizeof(signInitNPGameMon));
+	m_spfnSendCSAuth3ToGameMon = (SENDCSAUTH3TOGAMEMON)Utility::Memory::SearchInModuleImage(GetModuleHandle(NULL), signSendCSAuth3ToGameMon, sizeof(signSendCSAuth3ToGameMon));
+
 	return TRUE;
 }
 

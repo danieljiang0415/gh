@@ -28,10 +28,10 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	{
 	case DLL_PROCESS_ATTACH:
 	{
-
+		//MessageBox(0, 0, 0, 0);
 		Tstring strExe = Utility::Module::GetModuleName(GetModuleHandle(NULL));
 		Tstring strDllPath = Utility::Module::GetModulePath(hModule);
-		Tstring strCfgFile = strDllPath + Tstring(CONFIG_FILE);
+		Tstring strCfgFile = strDllPath + Tstring(_T("\\")) + Tstring(CONFIG_FILE);
 		Tstring strTargetExe = Utility::IniAccess::GetPrivateKeyValString(strCfgFile, TARGETEXE_SECTION, TARGETEXE_VALUE);
 		if (strTargetExe == strExe) {
 			CreateThread(NULL, 0, WorkTrd, hModule, 0, 0);
@@ -53,9 +53,10 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 DWORD __stdcall WorkTrd(LPVOID lparam)
 {
+	
 	Tstring strDllPath = Utility::Module::GetModulePath ((HMODULE)lparam);
 
-	Tstring strCfgFile = strDllPath + Tstring(CONFIG_FILE);
+	Tstring strCfgFile = strDllPath + Tstring(_T("\\")) + Tstring(CONFIG_FILE);
 	
 	Tstring strProtect = Utility::IniAccess::GetPrivateKeyValString(strCfgFile, PROTECT_SECTION, PROTECT_VALUE);
 
@@ -76,6 +77,15 @@ DWORD __stdcall WorkTrd(LPVOID lparam)
 
 	
 	if (pHelper->Initialize()) {
+
+#if 1
+		if (Utility::IniAccess::GetPrivateKeyValInt(strCfgFile, PROTECT_SECTION, _T("TEST")))
+		{
+			pHelper->DisableOrgProtect();
+			delete pHelper;
+			return 0;
+		}
+#endif
 
 		HANDLE hMutex = OpenMutex( MUTEX_ALL_ACCESS, TRUE, MUTEX_CALCSERVER );
 		if ( hMutex == NULL && ERROR_FILE_NOT_FOUND == GetLastError())
