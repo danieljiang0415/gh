@@ -53,6 +53,8 @@ public:
 	static CHECKNPGAMEMON m_sfpnCheckNPGameMon;
 	static CLOSENPGAMEMON m_sfpnCloseNPGameMon;
 	static INITNPGAMEMON  m_spfnInitNPGameMon;
-	static	PREINITNPGAMEMONA m_spfnPreInitNPGameMonA;
-	static	SENDCSAUTH3TOGAMEMON m_spfnSendCSAuth3ToGameMon;
+	static PREINITNPGAMEMONA m_spfnPreInitNPGameMonA;
+	static SENDUSERIDTOGAMEMONA m_spfnSendUserIDToGameMonA;
+	static SENDCSAUTH3TOGAMEMON m_spfnSendCSAuth3ToGameMon;
+	static BOOL m_bVirtualCodeValid;
 };

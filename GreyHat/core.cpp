@@ -20,8 +20,10 @@ BOOL CCoreLib::InstallPlugin(SENDPROCHANDLER pfnOutdataHdr, RECVPROCHANDLER pfnI
 	
 	_tcscpy(tszCoreModuleLoadName, GlobalEnv.tszCoreDllPath);
 	//_tcscat(tszCoreModuleLoadName, _T("."));
+	
 
 	GlobalEnv.hCoreInst = GetModuleHandle(tszCoreModuleLoadName);
+	Utility::Log::DbgPrint(_T("Plugin name = %s, @%08lx"), GlobalEnv.tszCoreDllPath, GlobalEnv.hCoreInst);
 
 	if ( NULL == GlobalEnv.hCoreInst )	{
 		GlobalEnv.hCoreInst = LoadLibrary(tszCoreModuleLoadName);

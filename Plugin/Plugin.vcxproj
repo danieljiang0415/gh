@@ -96,7 +96,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <OutputFile>$(SolutionDir)\bin\corelib.dll</OutputFile>
+      <OutputFile>$(SolutionDir)\bin\Plugin.dll</OutputFile>
       <AdditionalLibraryDirectories>..\common\detours\libx86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>

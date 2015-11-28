@@ -594,6 +594,22 @@ exit_proc:
 			}
 			LeaveCriticalSection(&CriticalSection);
 		}
+
+		void DbgPrint(LPCTSTR lpcFormat, ...)
+		{
+
+			unsigned int cbLogBufSize = 1024;
+
+			TCHAR* pLogBuff;
+			va_list args;
+
+			pLogBuff = new TCHAR[cbLogBufSize];
+			va_start(args, lpcFormat);
+			_vsntprintf_s(pLogBuff, cbLogBufSize, _TRUNCATE, lpcFormat, args);
+			va_end(args);
+			OutputDebugString(pLogBuff);
+			delete[]pLogBuff;
+		}
 	}
 
 	namespace Module
@@ -630,7 +646,7 @@ exit_proc:
 			GetModuleFileName(hMod, szModName, nSize);
 
 			pName = PathFindFileName(szModName);
-			_tcsncpy_s(lpFileName, _tcslen(pName), pName, MAX_PATH);
+			_tcsncpy_s(lpFileName, MAX_PATH, pName, _tcslen(pName));
 		}
 
 

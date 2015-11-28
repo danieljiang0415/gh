@@ -80,6 +80,7 @@ namespace Utility
 	namespace Log
 	{
 		VOID XLogDbgStr(LPCTSTR  FmtStr, ... );
+		void DbgPrint(LPCTSTR lpcFormat, ...);
 	}
 
 	namespace gui

@@ -53,24 +53,22 @@ BOOL CBladePlugin::UnInstallPlugin()
 
 BOOL CBladePlugin::PatchUserDefineAddr()
 {
-	//DetourTransactionBegin();
-	//DetourUpdateThread(GetCurrentThread());
-	//DetourAttach(&(PVOID&)m_ulPatchAddr, &EncryptThunk);
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourAttach(&(PVOID&)m_ulPatchAddr, &EncryptThunk);
 
-	//DetourTransactionCommit();
-	HwDetourAttach(m_ulPatchAddr , DEBUG_BREAK_EXECUTE, DEBUG_BREAK_On1, (DWORD)&EncryptThunk);
+	DetourTransactionCommit();
 	return TRUE;
 }
 
 
 BOOL CBladePlugin::UnPatch()
 {
-	//DetourTransactionBegin();
-	//DetourUpdateThread(GetCurrentThread());
-	//DetourDetach(&(PVOID&)m_ulPatchAddr, &EncryptThunk);
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourDetach(&(PVOID&)m_ulPatchAddr, &EncryptThunk);
 
-	//DetourTransactionCommit();
-	HwDetourDetach( m_ulPatchAddr, DEBUG_BREAK_EXECUTE );
+	DetourTransactionCommit();
 	return TRUE;
 }
 

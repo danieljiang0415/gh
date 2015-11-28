@@ -12,12 +12,19 @@
 #pragma managed(push, off)
 #endif
 
+#define CONFIG_FILE _T("config.ini")
+#define GAME_SECTION _T("GAME")
+#define GAME_VALUE _T("NAME")
+
+
 CPluginBase* pPlugin;
+HMODULE g_hInstance;
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
 					 )
 {
+	g_hInstance = hModule;
     return TRUE;
 }
 
@@ -28,7 +35,22 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 BOOL APIENTRY Install(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc)
 {
-	pPlugin = new CPlugin;
+	Tstring strDllPath = Utility::Module::GetModulePath(g_hInstance);
+
+	Tstring strCfgFile = strDllPath + Tstring(_T("\\")) + Tstring(CONFIG_FILE);
+
+	Tstring strGameName = Utility::IniAccess::GetPrivateKeyValString(strCfgFile, GAME_SECTION, GAME_VALUE);
+	Utility::Log::DbgPrint(_T("game=[%s]"), strGameName.c_str());
+	if (strGameName == Tstring(_T("BSTW"))) {
+		pPlugin = new CBladePlugin;
+		Utility::Log::DbgPrint(_T("new CBladePlugin"));
+
+	}
+	else {
+		pPlugin = new CPlugin;
+		Utility::Log::DbgPrint(_T("new CPlugin"));
+	}
+	
 	if (pPlugin)
 		return pPlugin->InstallPlugin(pfnHandleInputProc, pfnHandleOutputProc);
 	else
@@ -55,45 +77,3 @@ VOID APIENTRY Send(CPacket& packetBuf)
 	}
 		
 }
-
-
-//void XLogDbgStr(LPCTSTR  lpcFormattedMessage, ... )
-//{
-//	static CRITICAL_SECTION CriticalSection;
-//	static BOOL bInit = FALSE;
-//	if (!bInit)
-//	{
-//		InitializeCriticalSection(&CriticalSection);
-//		bInit = TRUE;
-//	}
-//
-//	EnterCriticalSection(&CriticalSection);
-//	unsigned int cbLogBufSize = 1024*1024;
-//	try
-//	{
-//		TCHAR* pLogBuff; 
-//		va_list args; 
-//
-//		pLogBuff = new TCHAR[cbLogBufSize];
-//		va_start( args, lpcFormattedMessage ); 
-//		_vsntprintf_s( pLogBuff, cbLogBufSize, _TRUNCATE, lpcFormattedMessage, args ); 
-//		va_end( args );
-//		{ 
-//			FILE *fp;
-//			_tfopen_s(&fp, TEXT("dbg.log"), TEXT("a")); 
-//			if(fp) 
-//			{ 
-//				TCHAR szDate[260], szTime[260]; 
-//				_tstrdate_s (szDate, sizeof(szDate)); _tstrtime_s(szTime, sizeof(szTime));
-//				_ftprintf (fp, TEXT("%s %s - [#%d][~%d]%s\n"), szDate, szTime, GetCurrentProcessId(),GetCurrentThreadId(),pLogBuff); 
-//				fclose(fp); 
-//			} 
-//		}
-//		delete[]pLogBuff;
-//	}
-//	catch(...)
-//	{
-//
-//	}
-//	LeaveCriticalSection(&CriticalSection);
-//}

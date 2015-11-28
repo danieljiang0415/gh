@@ -15,6 +15,7 @@
 #define PROTECT_SECTION _T("PROTECT")
 #define PROTECT_VALUE _T("VALUE")
 #define MUTEX_CALCSERVER _T("CALCSERVER")
+#define PACTH_CONFIG _T("OPTION")
 
 DWORD __stdcall WorkTrd(LPVOID lparam);
 
@@ -27,20 +28,24 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-	{
-		//MessageBox(0, 0, 0, 0);
-		Tstring strExe = Utility::Module::GetModuleName(GetModuleHandle(NULL));
-		Tstring strDllPath = Utility::Module::GetModulePath(hModule);
-		Tstring strCfgFile = strDllPath + Tstring(_T("\\")) + Tstring(CONFIG_FILE);
-		Tstring strTargetExe = Utility::IniAccess::GetPrivateKeyValString(strCfgFile, TARGETEXE_SECTION, TARGETEXE_VALUE);
-		if (strTargetExe == strExe) {
-			CreateThread(NULL, 0, WorkTrd, hModule, 0, 0);
-			return TRUE;
-		}
-		else {
-			return FALSE;
-		}
-
+	{	
+		//Tstring strExe = Utility::Module::GetModuleName(GetModuleHandle(NULL));
+		//Tstring strDllPath = Utility::Module::GetModulePath(hModule);
+		//Tstring strCfgFile = strDllPath + Tstring(_T("\\")) + Tstring(CONFIG_FILE);
+		//Tstring strTargetExe = Utility::IniAccess::GetPrivateKeyValString(strCfgFile, TARGETEXE_SECTION, TARGETEXE_VALUE);
+		//OutputDebugString(strTargetExe.c_str());
+		//OutputDebugString(strCfgFile.c_str());
+		//OutputDebugString(strDllPath.c_str());
+		//OutputDebugString(strExe.c_str());
+		//if (strTargetExe == strExe) {
+		//	OutputDebugString(_T("Find Target Process"));
+		//	CreateThread(NULL, 0, WorkTrd, hModule, 0, 0);
+		//	return TRUE;
+		//}
+		//else {
+		//	return FALSE;
+		//}
+		CreateThread(NULL, 0, WorkTrd, hModule, 0, 0);
 	}
 	break;
 	case DLL_THREAD_ATTACH:
@@ -53,7 +58,6 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 DWORD __stdcall WorkTrd(LPVOID lparam)
 {
-	
 	Tstring strDllPath = Utility::Module::GetModulePath ((HMODULE)lparam);
 
 	Tstring strCfgFile = strDllPath + Tstring(_T("\\")) + Tstring(CONFIG_FILE);
@@ -78,14 +82,15 @@ DWORD __stdcall WorkTrd(LPVOID lparam)
 	
 	if (pHelper->Initialize()) {
 
-#if 1
-		if (Utility::IniAccess::GetPrivateKeyValInt(strCfgFile, PROTECT_SECTION, _T("TEST")))
+		BOOL bPatchCfg = Utility::IniAccess::GetPrivateKeyValInt(strCfgFile, PROTECT_SECTION, PACTH_CONFIG);
+		Utility::Log::DbgPrint(TEXT("PACTH_CONFIG = %d"), bPatchCfg);
+		if (bPatchCfg)
 		{
+			Utility::Log::DbgPrint(TEXT("PACTH_CONFIG = TRUE"));
 			pHelper->DisableOrgProtect();
 			delete pHelper;
 			return 0;
 		}
-#endif
 
 		HANDLE hMutex = OpenMutex( MUTEX_ALL_ACCESS, TRUE, MUTEX_CALCSERVER );
 		if ( hMutex == NULL && ERROR_FILE_NOT_FOUND == GetLastError())

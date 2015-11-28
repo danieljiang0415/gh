@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin", "Plugin\Plugin.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProtectPlugin", "ProtectPlugin\ProtectPlugin.vcxproj", "{1D4FF712-570E-4048-BF74-ED23531E3908}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DllInjector", "DllInjector\DllInjector.vcxproj", "{143E2D88-C16E-4C8C-A0EF-E7ED045137DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Check|Win32 = Check|Win32
@@ -49,6 +51,18 @@ Global
 		{1D4FF712-570E-4048-BF74-ED23531E3908}.Release|Win32.Build.0 = Release|Win32
 		{1D4FF712-570E-4048-BF74-ED23531E3908}.Release|x64.ActiveCfg = Release|x64
 		{1D4FF712-570E-4048-BF74-ED23531E3908}.Release|x64.Build.0 = Release|x64
+		{143E2D88-C16E-4C8C-A0EF-E7ED045137DD}.Check|Win32.ActiveCfg = Release|Win32
+		{143E2D88-C16E-4C8C-A0EF-E7ED045137DD}.Check|Win32.Build.0 = Release|Win32
+		{143E2D88-C16E-4C8C-A0EF-E7ED045137DD}.Check|x64.ActiveCfg = Release|x64
+		{143E2D88-C16E-4C8C-A0EF-E7ED045137DD}.Check|x64.Build.0 = Release|x64
+		{143E2D88-C16E-4C8C-A0EF-E7ED045137DD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{143E2D88-C16E-4C8C-A0EF-E7ED045137DD}.Debug|Win32.Build.0 = Debug|Win32
+		{143E2D88-C16E-4C8C-A0EF-E7ED045137DD}.Debug|x64.ActiveCfg = Debug|x64
+		{143E2D88-C16E-4C8C-A0EF-E7ED045137DD}.Debug|x64.Build.0 = Debug|x64
+		{143E2D88-C16E-4C8C-A0EF-E7ED045137DD}.Release|Win32.ActiveCfg = Release|Win32
+		{143E2D88-C16E-4C8C-A0EF-E7ED045137DD}.Release|Win32.Build.0 = Release|Win32
+		{143E2D88-C16E-4C8C-A0EF-E7ED045137DD}.Release|x64.ActiveCfg = Release|x64
+		{143E2D88-C16E-4C8C-A0EF-E7ED045137DD}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -15,6 +15,9 @@
 
 #include "greyhat.h"
 
+#define CONFIG_FILE _T("config.ini")
+#define PLUGIN_DLL _T("Plugin.dll")
+
 HWND g_hmain_dlg;
 
 GLOBAL_ENV GlobalEnv;
@@ -194,100 +197,6 @@ INT_PTR CALLBACK MainUIDlgProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 		return FALSE;	// Let system deal with msg
 	}
 }
-/*
-
-//for disable gameguard...
-typedef	BOOL (WINAPI * PFN_CREATEPROCESSINTERNALA)(
-	HANDLE, LPCSTR, LPSTR, 
-	LPSECURITY_ATTRIBUTES,LPSECURITY_ATTRIBUTES,
-	BOOL,DWORD,LPVOID, LPCSTR,LPSTARTUPINFOA,
-	LPPROCESS_INFORMATION, PHANDLE);
-
-PFN_CREATEPROCESSINTERNALA	g_pfnCreateProcessInternalA;
-
-BOOL
-WINAPI
-Proxy_CreateProcessInternalA(
-	 HANDLE hToken,
-	 LPCSTR lpApplicationName,
-	 LPSTR lpCommandLine,
-	 LPSECURITY_ATTRIBUTES lpProcessAttributes,
-	 LPSECURITY_ATTRIBUTES lpThreadAttributes,
-	 BOOL bInheritHandles,
-	 DWORD dwCreationFlags,
-	 LPVOID lpEnvironment,
-	 LPCSTR lpCurrentDirectory,
-	 LPSTARTUPINFOA lpStartupInfo,
-	 LPPROCESS_INFORMATION lpProcessInformation,
-	 PHANDLE hNewToken
-	 )
-{
-	//MessageBoxA(NULL, lpApplicationName, "CreateProcessInternalA", MB_OK);
-
-	if (StrStrIA(lpApplicationName, "GameMon.des"))
-	{
-		//1,modify HKEY_CURRENT_USER\Software\INCAInternet\nProtectGameGuard\Update --> INF HashValue
-
-		Tstring new_crc;
-		new_crc = Utility::IniAccess::GetPrivateKeyValString(
-			Utility::Module::get_module_path(GlobalEnv.hUiInst) + _T("\\conf.ini"), _T("Protect"), _T("value"));
-
-		HKEY hkey;
-		RegOpenKeyA(HKEY_CURRENT_USER, "Software\\INCAInternet\\nProtectGameGuard\\Update", &hkey);
-
-		DWORD dwValue = _ttoi(new_crc.c_str()), dwSize = 4;
-		RegSetValueExA(hkey, "INF HashValue", 0, REG_DWORD, (const BYTE*)&dwValue, dwSize);
-
-
-		//2,modify XXXX.ini
-
-		Tstring protect_config;
-		protect_config = Utility::IniAccess::GetPrivateKeyValString(
-			Utility::Module::get_module_path(GlobalEnv.hUiInst) + _T("\\conf.ini"), _T("Protect"), _T("Cfg"));
-
-		HANDLE hGGConfig;
-		hGGConfig = CreateFile(protect_config.c_str(), GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL);
-		if (hGGConfig != INVALID_HANDLE_VALUE)
-		{
-			DWORD dwFileLen, dwRWed;
-			dwFileLen = GetFileSize(hGGConfig, NULL);
-
-			CHAR* lpBuf = new CHAR[dwFileLen];
-			ReadFile(hGGConfig, lpBuf, dwFileLen, &dwRWed, NULL);
-
-			lpBuf[0x85]=0xd7;//option value=1
-
-			//GAMECRC=0
-			//lpBuf[0xc0]=0x57;
-			//lpBuf[0xc1]=0x64;
-			//lpBuf[0xc2]=0xcc;
-			//lpBuf[0xc3]=0x6c;
-			//lpBuf[0xc4]=0xee;
-			//lpBuf[0xc5]=0x9c;
-			//lpBuf[0xc6]=0x87;
-			//lpBuf[0xc7]=0x45;
-			//lpBuf[0xc8]=0xde;
-			//lpBuf[0xc9]=0xcf;
-
-			SetFilePointer(hGGConfig, 0, 0, FILE_BEGIN);
-			WriteFile(hGGConfig, lpBuf, dwFileLen, &dwRWed, NULL);
-			delete[]lpBuf;
-			CloseHandle(hGGConfig);
-		}
-	}
-	return g_pfnCreateProcessInternalA(hToken, lpApplicationName,lpCommandLine,lpProcessAttributes,lpThreadAttributes,bInheritHandles,dwCreationFlags,lpEnvironment, lpCurrentDirectory,lpStartupInfo,lpProcessInformation,hNewToken);
-}
-
-void disable_gameguard()
-{
-	g_pfnCreateProcessInternalA		= reinterpret_cast<PFN_CREATEPROCESSINTERNALA> (GetProcAddress(GetModuleHandle(_T("kernel32.dll")), "CreateProcessInternalA"));
-
-	DetourTransactionBegin(  );
-	DetourUpdateThread( GetCurrentThread(  ) );
-	DetourAttach( &( PVOID& )g_pfnCreateProcessInternalA,  Proxy_CreateProcessInternalA );
-	DetourTransactionCommit(  );
-}
-*/
 
 #ifdef _MANAGED
 #pragma managed( push, off )
@@ -310,15 +219,15 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 		
 		_tcscpy(GlobalEnv.tszCfgFilePath, GlobalEnv.tszUiDllPath);
-		PathAppend(GlobalEnv.tszCfgFilePath, _T("conf.ini"));
+		PathAppend(GlobalEnv.tszCfgFilePath, CONFIG_FILE);
 
 		GetPrivateProfileString( _T("基本信息"), _T("游戏"), _T(""), GlobalEnv.tszGameName, 128, GlobalEnv.tszCfgFilePath);
 
 #ifdef LOCAL_USE
 
 		_tcscpy(GlobalEnv.tszCoreDllPath, GlobalEnv.tszUiDllPath);
-		_tcscpy(GlobalEnv.tszCoreDllName, GlobalEnv.tszGameName);
-		PathAppend(GlobalEnv.tszCoreDllPath, GlobalEnv.tszCoreDllName);
+		//_tcscpy(GlobalEnv.tszCoreDllName, GlobalEnv.tszGameName);
+		PathAppend(GlobalEnv.tszCoreDllPath, PLUGIN_DLL);
 		//_tcscat(GlobalEnv.tszCoreDllPath, _T("."));
 #else
 		_tcscpy(GlobalEnv.tszCoreDllPath, GlobalEnv.tszUiDllPath);
