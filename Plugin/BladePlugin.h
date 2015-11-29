@@ -16,8 +16,8 @@ protected:
 	BOOL PatchUserDefineAddr();
 	BOOL UnPatch();
 private:
-	static VOID WINAPI Encrypt(LPVOID lpParam, DWORD dwSize, LPBYTE lpBuffer);
-	static VOID EncryptThunk();
+	static VOID WINAPI detourGameEncrype(LPVOID thisObj, LPBYTE lpInBuffer, DWORD dwInSize, LPBYTE lpOutBuffer, DWORD dwOutSize, LPVOID lpParam);
+	static VOID detourGameEncrypeThunk();
 };
 
 /*

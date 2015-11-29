@@ -21,7 +21,7 @@ void CDOMPlugin::SendData(CPacket& packetBuf)
 	ctx = packetBuf.GetContext();
 	LPVOID thisPointer = ctx.param1;
 
-	bool (WINAPI*Encrypt)(DWORD, LPBYTE) = (bool (WINAPI*)(DWORD, LPBYTE))m_ulPatchAddr;
+	bool (WINAPI*detourGameEncrype)(DWORD, LPBYTE) = (bool (WINAPI*)(DWORD, LPBYTE))m_ulPatchAddr;
 
 	LPBYTE lpBuffer = packetBuf.GetRawData()+2;
 	DWORD  dwSize = packetBuf.GetDataLen()-2;
@@ -30,7 +30,7 @@ void CDOMPlugin::SendData(CPacket& packetBuf)
 		mov ecx, thisPointer
 		push lpBuffer
 		push dwSize
-		call Encrypt
+		call detourGameEncrype
 	}
 	send(ctx.s, (const char*)lpBuffer-2, dwSize+2, 0);
 }
@@ -50,7 +50,7 @@ BOOL CDOMPlugin::PatchUserDefineAddr()
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)m_ulPatchAddr, &EncryptThunk);
+	DetourAttach(&(PVOID&)m_ulPatchAddr, &detourGameEncrypeThunk);
 
 	DetourTransactionCommit();
 	return TRUE;
@@ -61,13 +61,13 @@ BOOL CDOMPlugin::UnPatch()
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourDetach(&(PVOID&)m_ulPatchAddr, &EncryptThunk);
+	DetourDetach(&(PVOID&)m_ulPatchAddr, &detourGameEncrypeThunk);
 
 	DetourTransactionCommit();
 	return TRUE;
 }
 
-VOID __declspec(naked) CDOMPlugin::EncryptThunk()
+VOID __declspec(naked) CDOMPlugin::detourGameEncrypeThunk()
 {
 	__asm
 	{
@@ -76,14 +76,14 @@ VOID __declspec(naked) CDOMPlugin::EncryptThunk()
 		push    dword ptr ds : [esp + 2ch]        //SIZE( dwBufferCount )
 		push    dword ptr ds : [esp + 2ch]		//DATA( LPWSABUF )
 		push    ecx
-		call    Encrypt
+		call    detourGameEncrype
 		popfd
 		popad
 		jmp     m_ulPatchAddr
 	}
 }
 
-VOID WINAPI CDOMPlugin::Encrypt(LPVOID lpParam , DWORD dwSize, LPBYTE lpBuffer)
+VOID WINAPI CDOMPlugin::detourGameEncrype(LPVOID lpParam , DWORD dwSize, LPBYTE lpBuffer)
 {
 	CContext ctx;
 	ctx.s = *(SOCKET*)lpParam;

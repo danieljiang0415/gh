@@ -3,7 +3,7 @@
 #include "dbghook.h"
 
 
-ULONG CBladePlugin::m_ulPatchAddr = 0x00BA8600;
+ULONG CBladePlugin::m_ulPatchAddr = 0x00BAA1A0;
 
 CBladePlugin::CBladePlugin()
 {
@@ -21,20 +21,28 @@ void CBladePlugin::SendData(CPacket& packetBuf)
 {
 	CContext ctx;
 	ctx = packetBuf.GetContext();
-	LPVOID thisPointer = ctx.param1;
+	LPVOID thisPointer = (LPVOID)*(ULONG*)((ULONG)ctx.param1+0x40);
+	LPVOID lparam = ctx.param2;
 
-	bool (WINAPI*Encrypt)(DWORD, LPBYTE) = (bool (WINAPI*)(DWORD, LPBYTE))m_ulPatchAddr;
+	DWORD (WINAPI*detourGameEncrype)(LPBYTE,  DWORD, LPBYTE, DWORD, LPVOID) = (DWORD(WINAPI*)(LPBYTE,  DWORD, LPBYTE, DWORD, LPVOID))m_ulPatchAddr;
 
-	LPBYTE lpBuffer = packetBuf.GetRawData() + 2;
-	DWORD  dwSize = packetBuf.GetDataLen() - 2;
+	LPBYTE lpBuffer = packetBuf.GetRawData();
+	DWORD  dwSize = packetBuf.GetDataLen();
+	BYTE*	pOutBuff = new BYTE[0x1000];
+	DWORD	dwRetSize = 0;
 	__asm
 	{
-		mov ecx, thisPointer
+		push lparam
+		push 0x1000
+		push pOutBuff
+		push dwSize
 		push lpBuffer
-			push dwSize
-			call Encrypt
+		mov ecx, thisPointer
+		call detourGameEncrype
+		mov dwRetSize, eax
 	}
-	send(ctx.s, (const char*)lpBuffer - 2, dwSize + 2, 0);
+	send(ctx.s, (const char*)pOutBuff, dwRetSize, 0);
+	delete pOutBuff;
 }
 
 BOOL CBladePlugin::InstallPlugin(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc)
@@ -55,7 +63,7 @@ BOOL CBladePlugin::PatchUserDefineAddr()
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)m_ulPatchAddr, &EncryptThunk);
+	DetourAttach(&(PVOID&)m_ulPatchAddr, &detourGameEncrypeThunk);
 
 	DetourTransactionCommit();
 	return TRUE;
@@ -66,22 +74,25 @@ BOOL CBladePlugin::UnPatch()
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourDetach(&(PVOID&)m_ulPatchAddr, &EncryptThunk);
+	DetourDetach(&(PVOID&)m_ulPatchAddr, &detourGameEncrypeThunk);
 
 	DetourTransactionCommit();
 	return TRUE;
 }
 
-VOID __declspec(naked) CBladePlugin::EncryptThunk()
+VOID __declspec(naked) CBladePlugin::detourGameEncrypeThunk()
 {
 	__asm
 	{
 		pushad
 		pushfd
-		push    dword ptr ds : [esp + 28h]        //SIZE( dwBufferCount )
-		push    dword ptr ds : [esp + 30h]		//DATA( LPWSABUF )
-		push    esi
-		call    Encrypt
+		push    dword ptr ds : [esp + 38h]
+		push    dword ptr ds : [esp + 38h]
+		push    dword ptr ds : [esp + 38h]
+		push    dword ptr ds : [esp + 38h]
+		push    dword ptr ds : [esp + 38h]
+		push	esi
+		call    detourGameEncrype
 		popfd
 		popad
 		push ecx
@@ -91,12 +102,13 @@ VOID __declspec(naked) CBladePlugin::EncryptThunk()
 	}
 }
 
-VOID WINAPI CBladePlugin::Encrypt(LPVOID lpParam, DWORD dwSize, LPBYTE lpBuffer)
+VOID WINAPI CBladePlugin::detourGameEncrype(LPVOID NetObj, LPBYTE lpInBuffer, DWORD dwInSize, LPBYTE lpOutBuffer, DWORD dwOutSize, LPVOID lpParam)
 {
 	CContext ctx;
-	ctx.s = *(SOCKET*)((ULONG)lpParam+0x10);
-	ctx.param1 = lpParam;
-	CPacket* packetBuf = new CPacket((LPBYTE)lpBuffer, dwSize, ctx);
+	ctx.s = *(SOCKET*)((ULONG)NetObj+0x10);
+	ctx.param1 = NetObj;
+	ctx.param2 = lpParam;
+	CPacket* packetBuf = new CPacket((LPBYTE)lpInBuffer, dwInSize, ctx);
 	packetBuf->SetType(IO_SEND);
 
 	m_pfnHandleSendProc(*packetBuf);
