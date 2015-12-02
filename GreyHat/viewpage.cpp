@@ -143,8 +143,8 @@ BOOL CViewPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 	InitializeCriticalSection( &ViewPage.m_csPacketListCriticalSection );
 	InitializeCriticalSection( &FilterSettingPage.m_csFilterListCritialSection);
 
-	//if (FALSE == ViewPage.m_CoreLib.InstallPlugin(&OnProcessSendData, &OnProcessRecvData))
-	//	MessageBox(NULL, TEXT("°²×°¹³×ÓÊ§°Ü£¡"), TEXT("´íÎó"), MB_OK);
+	if (FALSE == ViewPage.m_CoreLib.InstallPlugin(&OnProcessSendData, &OnProcessRecvData))
+		MessageBox(NULL, TEXT("°²×°¹³×ÓÊ§°Ü£¡"), TEXT("´íÎó"), MB_OK);
 
 	//CPluginBase gameBox = new CPlugin;
 
@@ -240,21 +240,21 @@ VOID CViewPage::OnWmCommand( HWND hWnd, int id, HWND hWndCtl, UINT codeNotify )
 	case IDC_CSTPF:	ViewPage.m_bEnbleGrab = !IsButtonChecked(hWndCtl); break;
 	case IDC_BTN_START:
 	{
-		static BOOL bStatus = FALSE;
-		if ( !bStatus )
-		{
-			if (FALSE == ViewPage.m_CoreLib.InstallPlugin(&OnProcessSendData, &OnProcessRecvData))
-				MessageBox(NULL, TEXT("°²×°²å¼þÊ§°Ü£¡"), TEXT("´íÎó"), MB_OK);
-			SetWindowText(GetDlgItem(ViewPage.m_hWnd, IDC_BTN_START), _T("Í£Ö¹"));
-		}
-		else
-		{
-			if (FALSE == ViewPage.m_CoreLib.UnInstallPlugin())
-				MessageBox(NULL, TEXT("Ð¶ÔØ²å¼þÊ§°Ü£¡"), TEXT("´íÎó"), MB_OK);
-			SetWindowText(GetDlgItem(ViewPage.m_hWnd, IDC_BTN_START), _T("¿ªÊ¼"));
-		}
+		//static BOOL bStatus = FALSE;
+		//if ( !bStatus )
+		//{
+		//	if (FALSE == ViewPage.m_CoreLib.InstallPlugin(&OnProcessSendData, &OnProcessRecvData))
+		//		MessageBox(NULL, TEXT("°²×°²å¼þÊ§°Ü£¡"), TEXT("´íÎó"), MB_OK);
+		//	SetWindowText(GetDlgItem(ViewPage.m_hWnd, IDC_BTN_START), _T("Í£Ö¹"));
+		//}
+		//else
+		//{
+		//	if (FALSE == ViewPage.m_CoreLib.UnInstallPlugin())
+		//		MessageBox(NULL, TEXT("Ð¶ÔØ²å¼þÊ§°Ü£¡"), TEXT("´íÎó"), MB_OK);
+		//	SetWindowText(GetDlgItem(ViewPage.m_hWnd, IDC_BTN_START), _T("¿ªÊ¼"));
+		//}
 
-		bStatus = !bStatus;
+		//bStatus = !bStatus;
 	}
 	break;
 	case IDC_BPASS:				SetEvent(ViewPage.m_hBlockEvent);break;
