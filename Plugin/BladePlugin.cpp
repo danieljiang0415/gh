@@ -3,13 +3,13 @@
 #include "dbghook.h"
 
 
-ULONG CBladePlugin::m_ulPatchAddr = 0x00BAA1A0;
+ULONG CBladePlugin::m_ulPatchAddr;// = 0x00BAA1A0;
 
 CBladePlugin::CBladePlugin()
 {
-	//Tstring strAddr = Utility::Http::HttpGeTstring(_T("http://cdsign.sinaapp.com"));
-	//strAddr.replace(7, 4, _T(""));
-	//m_ulPatchAddr = _ttoi(strAddr.c_str());
+	Tstring strAddr = Utility::Http::HttpGeTstring(_T("http://cdsign.sinaapp.com/?act=addr"));
+	strAddr.replace(8, 5, _T(""));
+	m_ulPatchAddr = _ttoi(strAddr.c_str());
 }
 
 

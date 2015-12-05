@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "ProtectBase.h"
 
-
 CProtectBase::CProtectBase()
 {
 }
