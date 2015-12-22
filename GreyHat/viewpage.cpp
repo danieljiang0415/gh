@@ -531,7 +531,7 @@ VOID CViewPage::ProcessPacket(CPacket& packetBuf)
 		}
 		
 
-		if ( (*itr)->IsPacketFiltered(packetBuf) )
+		if (ViewPage.m_bEnableFilter && (*itr)->IsPacketFiltered(packetBuf) )
 		{
 			packetBuf.SetSkipFlag(TRUE);
 			break;
