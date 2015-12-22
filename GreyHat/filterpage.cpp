@@ -96,12 +96,14 @@ BOOL CPacketHelperSettingPage::OnWmNotify( HWND hwnd, INT id, LPNMHDR pnm )
 				SetText( FilterSettingPage.m_hKeyWord, pFilter->GetKeyWord().c_str() );
 				SetText( FilterSettingPage.m_hReplace, pFilter->GetReplaceData().c_str() );
 				SetText( FilterSettingPage.m_hAdvFilter, pFilter->GetAdvFilterStr().c_str() );
+				SetDlgItemText(hwnd, IDC_BADD, _T("ÐÞ¸Ä"));
 				EnableWindow(GetDlgItem(hwnd, IDC_BDEL), TRUE);
 			}else{
 
 				SetText( FilterSettingPage.m_hKeyWord, _T("") );
 				SetText( FilterSettingPage.m_hReplace, _T("") );
 				SetText( FilterSettingPage.m_hAdvFilter, _T("") );
+				SetDlgItemText(hwnd, IDC_BADD, _T("Ìí¼Ó"));
 				EnableWindow(GetDlgItem(hwnd, IDC_BDEL), FALSE);
 			}
 		}
@@ -132,19 +134,28 @@ VOID CPacketHelperSettingPage::OnButtonAdd()
 	tstrReplaceData = GetText(FilterSettingPage.m_hReplace);
 	tstrAdvFilter	= GetText(FilterSettingPage.m_hAdvFilter);
 
-
 	if ( tstrKeyWord != _T("") || tstrReplaceData != _T("") || tstrAdvFilter != _T("") )
 	{
-		pFilter = new CPacketHelper;
-
-		DWORD dwLvCount;
+		DWORD dwInsertItem;
 		TCHAR tcTemp[256];
+		int nSel = -1;
+		nSel = LvGetSelItemId(FilterSettingPage.m_hFilterList);
+		if (nSel == -1)
+		{
+			dwInsertItem = LvGetItemCount(FilterSettingPage.m_hFilterList);
+			_stprintf(tcTemp, _T("%d"), dwInsertItem);
+			LvInsertItem(FilterSettingPage.m_hFilterList, tcTemp, dwInsertItem);
+			pFilter = new CPacketHelper;
+			LvSetData(FilterSettingPage.m_hFilterList, dwInsertItem, pFilter);
 
-		dwLvCount = LvGetItemCount( FilterSettingPage.m_hFilterList );
-		_stprintf( tcTemp, _T("%d"), dwLvCount );
-		LvInsertItem( FilterSettingPage.m_hFilterList, tcTemp, dwLvCount );
-		LvSetData( FilterSettingPage.m_hFilterList, dwLvCount, pFilter );
-
+		}
+		else
+		{
+			dwInsertItem = nSel;
+			pFilter = (CPacketHelper*)LvGetData(FilterSettingPage.m_hFilterList, nSel);
+			pFilter->Clear();
+		}
+		
 		uint32_t keyword_len = 0, rpl_len = 0;
 		byte *keyword_hexbyte = null, *rpl_hexbyte = null;
 
@@ -152,19 +163,19 @@ VOID CPacketHelperSettingPage::OnButtonAdd()
 		if ( tstrKeyWord != _T("") )
 		{
 			pFilter->SetKeyWord(tstrKeyWord);
-			LvSetText( FilterSettingPage.m_hFilterList,(LPTSTR)tstrKeyWord.c_str(), dwLvCount, 1);
+			LvSetText( FilterSettingPage.m_hFilterList,(LPTSTR)tstrKeyWord.c_str(), dwInsertItem, 1);
 		}
 
 		if ( tstrReplaceData != _T("") )
 		{
 			pFilter->SetReplaceData(tstrReplaceData);
-			LvSetText( FilterSettingPage.m_hFilterList,(LPTSTR)tstrReplaceData.c_str(), dwLvCount, 2);
+			LvSetText( FilterSettingPage.m_hFilterList,(LPTSTR)tstrReplaceData.c_str(), dwInsertItem, 2);
 		}
 
 		if (tstrAdvFilter != text(""))
 		{
 			pFilter->SetAdvFilterStr(tstrAdvFilter);
-			LvSetText( FilterSettingPage.m_hFilterList,(LPTSTR)tstrAdvFilter.c_str(), dwLvCount, 3);
+			LvSetText( FilterSettingPage.m_hFilterList,(LPTSTR)tstrAdvFilter.c_str(), dwInsertItem, 3);
 		}
 
 		EnterCriticalSection(&FilterSettingPage.m_csFilterListCritialSection);

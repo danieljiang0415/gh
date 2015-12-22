@@ -600,6 +600,7 @@ exit_proc:
 
 			unsigned int cbLogBufSize = 1024;
 
+
 			TCHAR* pLogBuff;
 			va_list args;
 
@@ -679,7 +680,10 @@ exit_proc:
 
 		void SetPrivateKeyValString(Tstring strPathOfIni, Tstring strSectionName,Tstring strKeyName, Tstring strSetVal)
 		{
-			WritePrivateProfileString(strSectionName.c_str(), strKeyName.c_str(), strSetVal.c_str(), strPathOfIni.c_str());
+			BOOL bRet;
+			bRet = WritePrivateProfileString(strSectionName.c_str(), strKeyName.c_str(), strSetVal.c_str(), strPathOfIni.c_str());
+			if (bRet == FALSE)
+				DWORD dwErr = GetLastError();
 		}
 
 		UINT GetPrivateKeyValInt(Tstring strPathOfIni, Tstring strSectionName, Tstring strKeyName)
@@ -812,6 +816,75 @@ exit_proc:
 				}
 			}
 			return lpMatchedAddr;
+		}
+	}
+
+	namespace UrlLib {
+
+		BOOL HttpRequest(Tstring& method, Tstring& url, LPVOID lpExtradata, LPBYTE lpbBuf, DWORD dwBufLen,LPDWORD pdwBytesRead) {
+
+			HINTERNET hSession = NULL, hConnect = NULL, hRequest = NULL;
+
+			LPCTSTR rgpszAcceptTypes[] = {
+				HTTP_ACCEPT_TYPES, NULL
+			};
+			try {
+				if (NULL == (hSession = ::InternetOpen(HTTP_USER_AGENT, INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0)))
+				{
+					throw;
+				}
+				TCHAR szOut[INTERNET_MAX_URL_LENGTH];
+				DWORD ccOut = INTERNET_MAX_URL_LENGTH;
+				UrlGetPart(url.c_str(), szOut, &ccOut, URL_PART_HOSTNAME, 0);
+				if (NULL == (hConnect = ::InternetConnect(hSession, szOut, 0, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0)))
+				{
+					throw;
+				}
+				LPCTSTR lpLocaltion = UrlGetLocation(url.c_str());
+				if (NULL == (hRequest = ::HttpOpenRequest(hConnect, method.c_str(), lpLocaltion, TEXT("HTTP/1.1"), NULL, rgpszAcceptTypes, INTERNET_FLAG_RELOAD, 0)))
+				{
+					throw;
+				}
+				if (!::HttpSendRequest(hRequest, NULL, 0, NULL, 0)) {
+					throw;
+				}
+
+				TCHAR szLength[32];
+				DWORD cbLength = sizeof(szLength);
+				if (::HttpQueryInfo(hRequest, HTTP_QUERY_CONTENT_LENGTH, szLength, &cbLength, NULL)) {
+
+					DWORD dwContentLength = (DWORD)_ttol(szLength);
+					DWORD dwNumberOfBytesRead = 0;
+					if (dwContentLength > 0 && dwContentLength < 65535) {
+						BYTE *lpBuff = new BYTE[dwContentLength];
+						if (!::InternetReadFile(hRequest, lpBuff, dwContentLength, &dwNumberOfBytesRead)) {
+							delete [] lpBuff;
+							throw;
+						}
+						else
+						{
+							if (dwContentLength <= dwBufLen) {
+								if( FALSE == IsBadWritePtr(lpbBuf, dwBufLen))
+									memcpy(lpbBuf, lpBuff, dwContentLength);
+							}
+							*pdwBytesRead = dwContentLength;
+							delete[] lpBuff;
+
+							return TRUE;
+						}
+					}
+
+				}
+				else
+					throw;
+
+			}
+			catch (...) {
+				InternetCloseHandle(hRequest);
+				InternetCloseHandle(hConnect);
+				InternetCloseHandle(hSession);
+				return FALSE;
+			}
 		}
 	}
 }

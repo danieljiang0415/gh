@@ -23,32 +23,98 @@
 
 DWORD __stdcall WorkTrd(LPVOID lparam);
 BOOL bDecodeComplete = FALSE;
-//typedef LONG NTSTATUS;
-//
-//typedef NTSTATUS (NTAPI*ZWSETINFORMATIONTHREAD)(
-//	__in HANDLE ThreadHandle,
-//	__in LONG ThreadInformationClass,
-//	__in_bcount(ThreadInformationLength) PVOID ThreadInformation,
-//	__in ULONG ThreadInformationLength
+typedef LONG NTSTATUS;
+
+typedef HANDLE(WINAPI*CREATETHREAD)(
+	_In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	_In_ SIZE_T dwStackSize,
+	_In_ LPTHREAD_START_ROUTINE lpStartAddress,
+	_In_opt_ __drv_aliasesMem LPVOID lpParameter,
+	_In_ DWORD dwCreationFlags,
+	_Out_opt_ LPDWORD lpThreadId
+	);
+CREATETHREAD fnCreateThread;
+HANDLE
+WINAPI
+detourCreateThread(
+	_In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	_In_ SIZE_T dwStackSize,
+	_In_ LPTHREAD_START_ROUTINE lpStartAddress,
+	_In_opt_ __drv_aliasesMem LPVOID lpParameter,
+	_In_ DWORD dwCreationFlags,
+	_Out_opt_ LPDWORD lpThreadId
+	);
+
+typedef NTSTATUS (NTAPI*ZWSETINFORMATIONTHREAD)(
+	__in HANDLE ThreadHandle,
+	__in LONG ThreadInformationClass,
+	__in_bcount(ThreadInformationLength) PVOID ThreadInformation,
+	__in ULONG ThreadInformationLength
+	);
+
+ZWSETINFORMATIONTHREAD ZwSetInformationThread;
+NTSTATUS NTAPI detourZwSetInformationThread(
+	__in HANDLE ThreadHandle,
+	__in LONG ThreadInformationClass,
+	__in_bcount(ThreadInformationLength) PVOID ThreadInformation,
+	__in ULONG ThreadInformationLength
+	)
+{
+	Utility::Log::DbgPrint(TEXT("ThreadInformationClass = %08lx"), ThreadInformationClass);
+	if (ThreadInformationClass == 0x11) {
+		static int count = 0;
+		DetourTransactionBegin();
+		DetourUpdateThread(GetCurrentThread());
+		switch (count)
+		{
+		case 0:
+			DetourDetach(&(PVOID&)ZwSetInformationThread, detourZwSetInformationThread);
+			DetourAttach(&(PVOID&)fnCreateThread, detourCreateThread);
+			break;
+		case 1:
+			DetourDetach(&(PVOID&)ZwSetInformationThread, detourZwSetInformationThread);
+			DetourDetach(&(PVOID&)fnCreateThread, detourCreateThread);
+			break;
+		}
+		count++;
+		DetourTransactionCommit();
+		//MessageBox(0, TEXT("ThreadInformationClass = %08lx"), 0, 0);
+		return 1L;
+	}
+	else
+		return ZwSetInformationThread(ThreadHandle, ThreadInformationClass, ThreadInformation, ThreadInformationLength);
+}
+
+//typedef HANDLE (WINAPI*CREATETHREAD)(
+//	_In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes,
+//	_In_ SIZE_T dwStackSize,
+//	_In_ LPTHREAD_START_ROUTINE lpStartAddress,
+//	_In_opt_ __drv_aliasesMem LPVOID lpParameter,
+//	_In_ DWORD dwCreationFlags,
+//	_Out_opt_ LPDWORD lpThreadId
 //	);
-//
-//ZWSETINFORMATIONTHREAD ZwSetInformationThread;
-//NTSTATUS NTAPI detourZwSetInformationThread(
-//	__in HANDLE ThreadHandle,
-//	__in LONG ThreadInformationClass,
-//	__in_bcount(ThreadInformationLength) PVOID ThreadInformation,
-//	__in ULONG ThreadInformationLength
-//	)
-//{
-//
-//	//Utility::Log::DbgPrint(TEXT("ThreadInformationClass = %08lx"), ThreadInformationClass);
-//	//if (ThreadInformationClass == 0x11) {
-//	//	MessageBox(0, TEXT("ThreadInformationClass = %08lx"), 0, 0);
-//	//	return 1L;
-//	//}
-//	//else
-//		return ZwSetInformationThread(ThreadHandle, ThreadInformationClass, ThreadInformation, ThreadInformationLength);
-//}
+//CREATETHREAD fnCreateThread;
+HANDLE
+WINAPI
+detourCreateThread(
+	_In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	_In_ SIZE_T dwStackSize,
+	_In_ LPTHREAD_START_ROUTINE lpStartAddress,
+	_In_opt_ __drv_aliasesMem LPVOID lpParameter,
+	_In_ DWORD dwCreationFlags,
+	_Out_opt_ LPDWORD lpThreadId
+	)
+{
+	HANDLE hThread;
+	hThread = fnCreateThread(lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
+	Utility::Log::DbgPrint(TEXT("fnCreateThread, ThreadId=%d, StartAddress=%08lx"), *lpThreadId, lpStartAddress);
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourAttach(&(PVOID&)ZwSetInformationThread, detourZwSetInformationThread);
+	DetourTransactionCommit();
+	return hThread;
+}
+
 //typedef void (WINAPI*GETSYSTEMTIMEASFILETIME)(LPFILETIME);
 //GETSYSTEMTIMEASFILETIME fnGetSystemTimeAsFileTime;
 //void WINAPI fakeGetSystemTimeAsFileTime(LPFILETIME lpSystemTimeAsFileTime)
@@ -65,13 +131,21 @@ BOOL bDecodeComplete = FALSE;
 //	return fnGetCurrentProcessId();
 //}
 //
-//typedef DWORD(WINAPI*GETCURRENTTHREADID)();
-//GETCURRENTTHREADID fnGetCurrentThreadId;
-//DWORD WINAPI fakeGetCurrentThreadId()
-//{
-//	Utility::Log::DbgPrint(TEXT("fakeGetCurrentThreadId"));
-//	return fnGetCurrentThreadId();
-//}
+typedef DWORD(WINAPI*GETCURRENTTHREADID)();
+GETCURRENTTHREADID fnGetCurrentThreadId;
+DWORD WINAPI fakeGetCurrentThreadId()
+{
+	Utility::Log::DbgPrint(TEXT("fakeGetCurrentThreadId"));
+	return fnGetCurrentThreadId();
+}
+
+typedef HANDLE (WINAPI*GETCURRENTTHREAD)();
+GETCURRENTTHREAD fnGetCurrentThread;
+HANDLE WINAPI fakeGetCurrentThread()
+{
+	Utility::Log::DbgPrint(TEXT("fakeGetCurrentThread"));
+	return fnGetCurrentThread();
+}
 //
 //typedef FARPROC(WINAPI*GETPROCADDRESS)(HMODULE, LPCSTR);
 //GETPROCADDRESS fnGetProcAddress;
@@ -88,7 +162,7 @@ BOOL WINAPI fakeQueryPerformanceCounter(LARGE_INTEGER * lpPerformanceCount)
 		bDecodeComplete = !bDecodeComplete;
 		Sleep(1000);
 	}
-	Utility::Log::DbgPrint(TEXT("fakeQueryPerformanceCounter"));
+	//Utility::Log::DbgPrint(TEXT("fakeQueryPerformanceCounter"));
 	return fnQueryPerformanceCounter(lpPerformanceCount);
 }
 
@@ -102,27 +176,37 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	{
 	case DLL_PROCESS_ATTACH:
 	{	
+		ZwSetInformationThread = (ZWSETINFORMATIONTHREAD)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "ZwSetInformationThread");
+		Utility::Log::DbgPrint(TEXT("ZwSetInformationThread = %08lx"), ZwSetInformationThread);
+		fnCreateThread = (CREATETHREAD)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "CreateThread");
+		Utility::Log::DbgPrint(TEXT("fnCreateThread = %08lx"), fnCreateThread);
 	
-		/*fnGetSystemTimeAsFileTime = (GETSYSTEMTIMEASFILETIME)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetSystemTimeAsFileTime");
-		Utility::Log::DbgPrint(TEXT("fnGetSystemTimeAsFileTime = %08lx"), fnGetSystemTimeAsFileTime);
-		fnGetCurrentProcessId = (GETCURRENTPROCESSID)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetCurrentProcessId");
-		Utility::Log::DbgPrint(TEXT("fnGetCurrentProcessId = %08lx"), fnGetCurrentProcessId);
-		fnGetCurrentThreadId = (GETCURRENTTHREADID)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetCurrentThreadId");
-		Utility::Log::DbgPrint(TEXT("fnGetCurrentThreadId = %08lx"), fnGetCurrentThreadId);
-		fnGetProcAddress = (GETPROCADDRESS)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetProcAddress");
-		Utility::Log::DbgPrint(TEXT("fnGetProcAddress = %08lx"), fnGetProcAddress);*/
+		//fnGetSystemTimeAsFileTime = (GETSYSTEMTIMEASFILETIME)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetSystemTimeAsFileTime");
+		//Utility::Log::DbgPrint(TEXT("fnGetSystemTimeAsFileTime = %08lx"), fnGetSystemTimeAsFileTime);
+		//fnGetCurrentProcessId = (GETCURRENTPROCESSID)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetCurrentProcessId");
+		//Utility::Log::DbgPrint(TEXT("fnGetCurrentProcessId = %08lx"), fnGetCurrentProcessId);
+		//fnGetCurrentThreadId = (GETCURRENTTHREADID)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetCurrentThreadId");
+		//Utility::Log::DbgPrint(TEXT("fnGetCurrentThreadId = %08lx"), fnGetCurrentThreadId);
+		//fnGetCurrentThread = (GETCURRENTTHREAD)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetCurrentThread");
+		//Utility::Log::DbgPrint(TEXT("fnGetCurrentThread = %08lx"), fnGetCurrentThread);
+		//fnGetProcAddress = (GETPROCADDRESS)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetProcAddress");
+		//Utility::Log::DbgPrint(TEXT("fnGetProcAddress = %08lx"), fnGetProcAddress);
 		fnQueryPerformanceCounter = (QUERYPERFORMANCECOUNTER)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "QueryPerformanceCounter");
 		Utility::Log::DbgPrint(TEXT("fnQueryPerformanceCounter = %08lx"), fnQueryPerformanceCounter);
 
 		DetourTransactionBegin();
 		DetourUpdateThread(GetCurrentThread());
+		//DetourAttach(&(PVOID&)ZwSetInformationThread, detourZwSetInformationThread);
+		//DetourAttach(&(PVOID&)fnCreateThread, detourCreateThread);
 		//DetourAttach(&(PVOID&)fnGetSystemTimeAsFileTime, fakeGetSystemTimeAsFileTime);
 		//DetourAttach(&(PVOID&)fnGetCurrentProcessId, fakeGetCurrentProcessId);
 		//DetourAttach(&(PVOID&)fnGetCurrentThreadId, fakeGetCurrentThreadId);
+		//DetourAttach(&(PVOID&)fnGetCurrentThread, fakeGetCurrentThread);
 		DetourAttach(&(PVOID&)fnQueryPerformanceCounter, fakeQueryPerformanceCounter);
 		//DetourAttach(&(PVOID&)fnGetProcAddress, fakeGetProcAddress);
 		DetourTransactionCommit();
-		CreateThread(NULL, 0, WorkTrd, hModule, 0, 0);
+		DWORD dwThreadId;
+		CreateThread(NULL, 0, WorkTrd, hModule, 0, &dwThreadId);
 	}
 	break;
 	case DLL_THREAD_ATTACH:

@@ -112,6 +112,18 @@ CPacketHelper::CPacketHelper()
 	memset(m_AdvFilterSplit, 0, sizeof(m_AdvFilterSplit));
 }
 
+VOID CPacketHelper::Clear()
+{
+	m_tstrKeyWords = _T("");
+	m_tstrReplaceData = _T("");
+	m_tstrAdvFilter = _T("");
+	m_pAdvFilterBuffer = NULL;
+
+	memset(m_AdvFilterSplit, 0, sizeof(m_AdvFilterSplit));
+}
+
+
+
 CPacketHelper::~CPacketHelper()
 {
 	delete[]m_pAdvFilterBuffer;
@@ -213,14 +225,14 @@ BOOL CPacketHelper::IsPacketFiltered(CPacket& packetBuf)
 	TCHAR tszIp[128];
 	TCHAR* pTemp; 
 	DWORD dwLen, dwPort, dwIndex, dwValue;
-
+	BOOL bNeedFilter = FALSE;
 	if ( m_AdvFilterSplit[0])
 	{
 		for (int i = 0; i < 256; i++ )
 		{
 			pTemp = m_AdvFilterSplit[i];
 			if ( NULL == pTemp ) {
-				return TRUE;
+				return bNeedFilter;
 			}
 
 			if ( *pTemp == _T('L'))//³¤¶È
@@ -228,7 +240,11 @@ BOOL CPacketHelper::IsPacketFiltered(CPacket& packetBuf)
 				_stscanf_s(pTemp, _T("L=%d"), &dwLen);
 				if (dwLen != dwPacketSize)
 				{
-					return FALSE;
+					bNeedFilter = FALSE;
+					break;
+				}
+				else {
+					bNeedFilter = TRUE;
 				}
 			}
 			else if( *pTemp == _T('P'))//¶Ë¿Ú
@@ -236,7 +252,11 @@ BOOL CPacketHelper::IsPacketFiltered(CPacket& packetBuf)
 				_stscanf_s(pTemp, _T("P=%d"), &dwPort);
 				if (dwPort != dwPacketPort)
 				{
-					return FALSE;
+					bNeedFilter = FALSE;
+					break;
+				}
+				else {
+					bNeedFilter = TRUE;
 				}
 			}
 			else if ( *pTemp == _T('I') && *(pTemp + 1) == _T('P'))//IP
@@ -244,20 +264,28 @@ BOOL CPacketHelper::IsPacketFiltered(CPacket& packetBuf)
 				_stscanf_s(pTemp, _T("IP=%s"), tszIp);
 				if(_tcscmp(tszIp, lpstrPacketIp))
 				{
-					return FALSE;
+					bNeedFilter = FALSE;
+					break;
+				}
+				else {
+					bNeedFilter = TRUE;
 				}
 			}else
 			{
 				_stscanf_s(pTemp, _T("%d=%x"), &dwIndex, &dwValue);
 				if ( lpPacketData[dwIndex-1] != dwValue )
 				{
-					return FALSE;
+					bNeedFilter = FALSE;
+					break;
+				}
+				else {
+					bNeedFilter = TRUE;
 				}
 			}
 		}
 	}
 
-	return FALSE;
+	return bNeedFilter;
 }
 
 BOOL CPacketHelper::ReplacePacketData(CPacket& packetBuf)

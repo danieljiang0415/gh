@@ -95,4 +95,6 @@ private:
 
 	TCHAR*  m_AdvFilterSplit[256];
 	TCHAR*	m_pAdvFilterBuffer;
+public:
+	VOID Clear();
 };

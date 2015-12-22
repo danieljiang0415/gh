@@ -116,5 +116,9 @@ namespace Utility
 		LPVOID SearchInModuleImage( HMODULE lpModuleMemBase, LPBYTE lpSign, ULONG ulSignSize);
 		LPVOID BooyerSearch(LPBYTE lpSrc, DWORD dwStringLen, LPBYTE lpSign, DWORD dwSignLen);
 	}
+
+	namespace UrlLib {
+		BOOL HttpRequest(Tstring& method, Tstring& url, LPVOID lpExtradata = NULL, LPBYTE lpbBuf = NULL, DWORD dwBufLen = 0, LPDWORD pdwBytesRead= 0);
+	}
 }
 
