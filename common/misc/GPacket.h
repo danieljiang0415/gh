@@ -60,6 +60,7 @@ public:
 	VOID SetFiltered();
 private:
 	LPBYTE m_pBuf;
+	LPBYTE m_pRawBuf;
 	DWORD  m_dwSize;
 	CProperty m_property;
 	BOOL m_bFiltered;
@@ -80,7 +81,7 @@ public:
 		m_strKey		=	_T("");
 		m_strReplace	=	_T("");;
 		m_strAdvanceKey =	_T("");;
-		//m_ProcessType	=	PROCESS_UNDEFINE;;
+		m_ProcessType	=	PROCESS_UNDEFINE;;
 		m_strUUID = Utility::Msic::GenUUID();
 	};
 
@@ -101,5 +102,5 @@ public:
 	Tstring m_strReplace;
 	Tstring m_strAdvanceKey;
 	Tstring m_strUUID;
-	//PROCESS_TYPE m_ProcessType;
+	PROCESS_TYPE m_ProcessType;
 };

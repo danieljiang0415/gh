@@ -4,6 +4,8 @@
 SENDPROCHANDLER CPluginBase::m_pfnHandleSendProc;
 RECVPROCHANDLER CPluginBase::m_pfnHandleRecvProc;
 
+CPluginBase*	CPluginBase::m_PlugInstance;
+
 CPluginBase::CPluginBase()
 {
 	m_pfnSendInterface = NULL;
@@ -16,6 +18,7 @@ CPluginBase::CPluginBase()
 	m_bReplaceFunEnable = FALSE;
 
 	InitializeCriticalSection(&m_ListCritialSection);
+	m_PlugInstance = this;
 }
 
 
@@ -33,17 +36,17 @@ void CPluginBase::AddPackageProcessor(CGPacketProcessor& processor)
 
 void CPluginBase::DeletePackageProcessor(CGPacketProcessor& processor)
 {
-	list<CGPacketProcessor*>::iterator itr;
-	for (itr = m_PacketProcessorList.begin(); itr != m_PacketProcessorList.end(); itr++)
+	EnterCriticalSection(&m_ListCritialSection);
+	list<CGPacketProcessor*>::iterator i;
+	for (i = m_PacketProcessorList.begin(); i != m_PacketProcessorList.end(); i++)
 	{
-		if (processor.m_strUUID == (*itr)->m_strUUID) 
+		if (processor.m_strUUID == (*i)->m_strUUID) 
 		{
-			EnterCriticalSection(&m_ListCritialSection);
-			delete *itr;
-			m_PacketProcessorList.erase(itr);
-			LeaveCriticalSection(&m_ListCritialSection);
+			delete *i;
+			m_PacketProcessorList.erase(i);
 		}
 	}
+	LeaveCriticalSection(&m_ListCritialSection);
 }
 
 void CPluginBase::SetFilterEnable(BOOL bEnable)
@@ -57,14 +60,21 @@ void CPluginBase::SetReplaceEnable(BOOL bEnable)
 
 void CPluginBase::PreProcessGPacket(CGPacket&packet)
 {
-	list<CGPacketProcessor*>::iterator itr;
-	for (itr = m_PacketProcessorList.begin(); itr != m_PacketProcessorList.end(); itr++)
+	EnterCriticalSection(&m_ListCritialSection);
+	list<CGPacketProcessor*>::iterator i;
+	for (i = m_PacketProcessorList.begin(); i != m_PacketProcessorList.end(); i++)
 	{
-		EnterCriticalSection(&m_ListCritialSection);
-		delete *itr;
-		m_PacketProcessorList.erase(itr);
-		LeaveCriticalSection(&m_ListCritialSection);
+		CGPacketProcessor* p = *i;
+		if (m_bFileterFunEnable && p->m_ProcessType == PROCESS_FILTER)
+		{
+			if (packet.Find(p->m_strKey) || packet.AdvancedMach(p->m_strAdvanceKey))
+				packet.SetFiltered();
+		}
+		if (m_bReplaceFunEnable&& p->m_ProcessType == PROCESS_REPLACE)
+		{
+			packet.Replace(p->m_strKey, p->m_strReplace);
+		}
 	}
 
-
+	LeaveCriticalSection(&m_ListCritialSection);
 }

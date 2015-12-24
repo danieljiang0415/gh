@@ -5,9 +5,8 @@
 #include"GPacket.h"
 
 class CPacket;
-//class CGPacketProcessor;
 
-typedef VOID (WINAPI*SENDPROCHANDLER)(CPacket& packetBuf);
+typedef VOID (WINAPI*SENDPROCHANDLER)(CGPacket& packetBuf);
 typedef VOID (WINAPI*RECVPROCHANDLER)(CPacket& packetBuf);
 
 class CPluginBase
@@ -18,8 +17,8 @@ public:
 	virtual void SendData(CPacket& packetBuf) = 0;
 	virtual BOOL InstallPlugin(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc) = 0;
 	virtual BOOL UnInstallPlugin() = 0;
-protected:
 
+protected:
 	FARPROC m_pfnSendInterface;
 	FARPROC m_pfnRecvInterface;
 
@@ -39,5 +38,7 @@ public:
 	BOOL							m_bReplaceFunEnable;
 	std::list<CGPacketProcessor*>	m_PacketProcessorList;
 	CRITICAL_SECTION				m_ListCritialSection;
+
+	static CPluginBase*					m_PlugInstance;
 };
 

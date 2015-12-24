@@ -5,6 +5,7 @@
 CGPacket::CGPacket()
 {
 	m_pBuf		= NULL;
+	m_pRawBuf	= NULL;
 	m_dwSize	= 0;
 	m_bFiltered = FALSE;
 }
@@ -26,7 +27,7 @@ CGPacket::CGPacket(LPBYTE lpData, DWORD dwLen, CProperty& Property)
 	memcpy(m_pBuf, lpData, dwLen);
 	m_dwSize = dwLen;
 	m_property = Property;
-	
+	m_pRawBuf = lpData;
 	if (Property.s != INVALID_SOCKET)
 	{
 		sockaddr_in sin;
@@ -41,6 +42,10 @@ CGPacket::CGPacket(LPBYTE lpData, DWORD dwLen, CProperty& Property)
 				_stscanf_s(tszTemp, _T("%[0-9,.]:%d"), tszIP, sizeof(tszIP), &dwPort);
 				m_property.strIpAddr = tszIP;
 				m_property.dwPort = dwPort;
+
+				TCHAR szBuf[32];
+				_itot(dwPort, szBuf, 10);
+				m_property.strPort = Tstring(szBuf);
 			}
 		}
 	}
@@ -102,13 +107,13 @@ VOID   CGPacket::Replace(LPBYTE lpKey, DWORD dwKeyLen, LPBYTE lpReplace, DWORD d
 	/* Searching */
 	i = j = 0;
 	while (j < m_dwSize) {
-		while (i > -1 && lpKey[i] != m_pBuf[j])
+		while (i > -1 && lpKey[i] != m_pRawBuf[j])
 			i = kmpNext[i];
 		i++;
 		j++;
 		if (i >= dwKeyLen) {
 			//OUTPUT(j - i);
-			memcpy_s(&m_pBuf[j - i], m_dwSize - j + i, lpReplace, dwReplaceLen);
+			memcpy_s(&m_pRawBuf[j - i], m_dwSize - j + i, lpReplace, dwReplaceLen);
 			i = kmpNext[i];
 		}
 	}
@@ -165,104 +170,67 @@ VOID CGPacket::SetFiltered()
 }
 
 //2,高级过滤  L=20|01=0C|02=0B|20=CC|IP=211.1.1.1|P=9900 条件必须都要满足
-BOOL CGPacket::AdvancedMach(Tstring& strState)
+BOOL CGPacket::AdvancedMach(Tstring& str)
 {
-	std:map<Tstring, Tstring> matchmap;
-	strState.find_first_of(_T('|'));
-
-	DWORD dwStateStrLen;
-	dwStateStrLen = strState.length() + 1;
-
-	m_pAdvFilterBuffer = new TCHAR[dwStrLen];
-	memset(m_pAdvFilterBuffer, 0, sizeof(TCHAR)*dwStrLen);
-
-	_tcscpy(m_pAdvFilterBuffer, tstrAdvFilterStr.c_str());
-
-	TCHAR* pTemp = m_pAdvFilterBuffer;
-
-	DWORD i = 0;
-
-	if (*pTemp != _T('|'))
+	std::map<Tstring, Tstring> matchmap;
+	int splitpos = 0, pos = 0;
+	while (pos < str.length())
 	{
-		m_AdvFilterSplit[i++] = pTemp;
-	}
+		splitpos = str.find(_T('|'), pos);
 
-	while (*pTemp != _T('\0'))
-	{
-		if (*pTemp == _T('|'))//&& _T('\0') != *(pTemp + 1) 
+		Tstring strSub;
+		if (Tstring::npos != splitpos)
 		{
-			*pTemp = _T('\0');
-			if (_T('\0') != *(pTemp + 1))
-			{
-				m_AdvFilterSplit[i++] = pTemp + 1;
-			}
-
+			strSub = str.substr(pos, splitpos - pos);
 		}
-		pTemp++;
-	}
+		else {
+			strSub = str.substr(pos);
+		}
 
-	m_tstrAdvFilter = tstrAdvFilterStr;
+		int assignpos;
+		assignpos = strSub.find(_T('='));
+		if (Tstring::npos != assignpos) {
+			Tstring key, value;
+			key = strSub.substr(0, assignpos);
+			value = strSub.substr(assignpos+1);
+			matchmap[key] = value;
+		}
+		pos = splitpos + 1;
+	}
+		
 	//2,高级过滤  L=20|01=0C|02=0B|20=CC|IP=211.1.1.1|P=9900 条件必须都要满足
-	TCHAR tszIp[128];
-	TCHAR* pTemp;
-	DWORD dwLen, dwPort, dwIndex, dwValue;
-	BOOL bNeedFilter = FALSE;
-	if (m_AdvFilterSplit[0])
+	std::map<Tstring, Tstring>::iterator i;
+	for (i = matchmap.begin(); i != matchmap.end(); i++)
 	{
-		for (int i = 0; i < 256; i++)
-		{
-			pTemp = m_AdvFilterSplit[i];
-			if (NULL == pTemp) {
-				return bNeedFilter;
+		Tstring Key, Value;
+		Key = (*i).first;
+		Value = (*i).second;
+		if (Key == Tstring(_T("L"))) {
+			if (m_dwSize != _ttoi(Value.c_str())) 
+			{
+				return FALSE;
 			}
 
-			if (*pTemp == _T('L'))//长度
+		}
+		else if (Key == Tstring(_T("IP"))) {
+			if (m_property.strIpAddr != Value)
 			{
-				_stscanf_s(pTemp, _T("L=%d"), &dwLen);
-				if (dwLen != dwPacketSize)
-				{
-					bNeedFilter = FALSE;
-					break;
-				}
-				else {
-					bNeedFilter = TRUE;
-				}
-			}
-			else if (*pTemp == _T('P'))//端口
-			{
-				_stscanf_s(pTemp, _T("P=%d"), &dwPort);
-				if (dwPort != dwPacketPort)
-				{
-					bNeedFilter = FALSE;
-					break;
-				}
-				else {
-					bNeedFilter = TRUE;
-				}
-			}
-			else if (*pTemp == _T('I') && *(pTemp + 1) == _T('P'))//IP
-			{
-				_stscanf_s(pTemp, _T("IP=%s"), tszIp);
-				if (_tcscmp(tszIp, lpstrPacketIp))
-				{
-					bNeedFilter = FALSE;
-					break;
-				}
-				else {
-					bNeedFilter = TRUE;
-				}
-			}
-			else
-			{
-				_stscanf_s(pTemp, _T("%d=%x"), &dwIndex, &dwValue);
-				if (lpPacketData[dwIndex - 1] != dwValue)
-				{
-					bNeedFilter = FALSE;
-					break;
-				}
-				else {
-					bNeedFilter = TRUE;
-				}
+				return FALSE;
 			}
 		}
+		else if (Key == Tstring(_T("P"))) {
+			if (m_property.strPort != Value)
+			{
+				return FALSE;
+			}
+
+		}
+		else {
+			if (m_pBuf[_ttoi(Key.c_str())] != _ttoi(Value.c_str()))
+			{
+				return FALSE;
+			}
+		}
+	}
+	return TRUE;
 }

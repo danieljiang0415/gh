@@ -48,7 +48,7 @@ VOID APIENTRY CPlugin::WSASendStub(SOCKET s, LPWSABUF lpBuffers, DWORD dwBufferC
 			ctx.s = s;
 			CPacket* packetBuf = new CPacket((LPBYTE)lpBuffers[i].buf, lpBuffers[i].len, ctx);
 			packetBuf->SetType(IO_SEND);
-			m_pfnHandleSendProc(*packetBuf);
+//			m_pfnHandleSendProc(*packetBuf);
 		}
 	}
 }
@@ -71,11 +71,21 @@ VOID __declspec(naked) CPlugin::WSASend12Thunk()
 VOID APIENTRY CPlugin::SendStub(SOCKET s, const char* buf, int nlen)
 {
 	if (nlen > 0) {
-		CContext ctx;
-		ctx.s = s;
-		CPacket* packetBuf = new CPacket((LPBYTE)buf, nlen, ctx);
-		packetBuf->SetType(IO_SEND);
-		m_pfnHandleSendProc(*packetBuf);
+		//CContext ctx;
+		//ctx.s = s;
+		//CPacket* packetBuf = new CPacket((LPBYTE)buf, nlen, ctx);
+		//packetBuf->SetType(IO_SEND);
+		//m_pfnHandleSendProc(*packetBuf);
+		CProperty pro;
+		pro.s = s;
+		pro.ioType = IO_OUTPUT;
+		CGPacket *pNewPacket = new CGPacket((LPBYTE)buf, nlen, pro);
+		CPluginBase::m_PlugInstance->PreProcessGPacket(*pNewPacket);
+		if (FALSE == pNewPacket->IsFiltered())
+		{
+			m_pfnHandleSendProc(*pNewPacket);
+		}
+
 	}
 
 }
