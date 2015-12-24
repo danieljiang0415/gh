@@ -122,13 +122,9 @@ namespace Utility
 		BOOL HttpRequest(Tstring& method, Tstring& url, LPVOID lpExtradata = NULL, LPBYTE lpbBuf = NULL, DWORD dwBufLen = 0, LPDWORD pdwBytesRead= 0);
 	}
 
-	namespace Algorithm
+	namespace Msic
 	{
-		namespace KMP
-		{
-			typedef int(__stdcall*USERPROC)(char*);
-			bool KMP(char *x, int m, char *y, int n, USERPROC callback = NULL);
-		}
+		Tstring GenUUID();
 	}
 }
 

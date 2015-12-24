@@ -1,8 +1,11 @@
 #pragma once
 
 #include <WinSock2.h>
+#include <list>
+#include"GPacket.h"
 
 class CPacket;
+//class CGPacketProcessor;
 
 typedef VOID (WINAPI*SENDPROCHANDLER)(CPacket& packetBuf);
 typedef VOID (WINAPI*RECVPROCHANDLER)(CPacket& packetBuf);
@@ -24,5 +27,17 @@ protected:
 	static SENDPROCHANDLER m_pfnHandleSendProc;
 	static RECVPROCHANDLER m_pfnHandleRecvProc;
 
+public:
+	void AddPackageProcessor(CGPacketProcessor&);
+	void DeletePackageProcessor(CGPacketProcessor&);
+	void SetFilterEnable(BOOL bEnable);
+	void SetReplaceEnable(BOOL bEnable);
+	void PreProcessGPacket(CGPacket&);
+
+public:
+	BOOL							m_bFileterFunEnable;
+	BOOL							m_bReplaceFunEnable;
+	std::list<CGPacketProcessor*>	m_PacketProcessorList;
+	CRITICAL_SECTION				m_ListCritialSection;
 };
 
