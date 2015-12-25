@@ -20,11 +20,11 @@ CPlugin::~CPlugin()
 {
 }
 
-void CPlugin::SendData(CPacket& packetBuf)
+void CPlugin::SendData(CGPacket& packetBuf)
 {
-	CContext ctx;
-	ctx = packetBuf.GetContext();
-	send(ctx.s, (const char*)packetBuf.GetRawData(), packetBuf.GetDataLen(), 0);
+	CProperty pro;
+	pro = packetBuf.GetPacketProperty();
+	send(pro.s, (const char*)packetBuf.GetBuffer(), packetBuf.GetBufferLen(), 0);
 }
 BOOL CPlugin::InstallPlugin(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc)
 {
@@ -44,10 +44,10 @@ VOID APIENTRY CPlugin::WSASendStub(SOCKET s, LPWSABUF lpBuffers, DWORD dwBufferC
 	for (unsigned int i = 0; i<dwBufferCount; i++)
 	{
 		if ( lpBuffers[i].len > 0) {
-			CContext ctx;
-			ctx.s = s;
-			CPacket* packetBuf = new CPacket((LPBYTE)lpBuffers[i].buf, lpBuffers[i].len, ctx);
-			packetBuf->SetType(IO_SEND);
+			CProperty pro;
+			pro.s = s;
+			CGPacket* packetBuf = new CGPacket((LPBYTE)lpBuffers[i].buf, lpBuffers[i].len, pro);
+			packetBuf->GetPacketProperty().ioType = IO_OUTPUT;
 //			m_pfnHandleSendProc(*packetBuf);
 		}
 	}
@@ -71,9 +71,9 @@ VOID __declspec(naked) CPlugin::WSASend12Thunk()
 VOID APIENTRY CPlugin::SendStub(SOCKET s, const char* buf, int nlen)
 {
 	if (nlen > 0) {
-		//CContext ctx;
-		//ctx.s = s;
-		//CPacket* packetBuf = new CPacket((LPBYTE)buf, nlen, ctx);
+		//CProperty pro;
+		//pro.s = s;
+		//CGPacket* packetBuf = new CGPacket((LPBYTE)buf, nlen, pro);
 		//packetBuf->SetType(IO_SEND);
 		//m_pfnHandleSendProc(*packetBuf);
 		CProperty pro;
@@ -107,9 +107,9 @@ VOID __declspec(naked) CPlugin::Send12Thunk(void)
 
 //VOID APIENTRY CPlugin::SendToThunkHandler(SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen)
 //{
-//	CContext ctx;
-//	ctx.s = s;
-//	CPacket* packetBuf = new CPacket((LPBYTE)buf, len, ctx);
+//	CProperty pro;
+//	pro.s = s;
+//	CGPacket* packetBuf = new CGPacket((LPBYTE)buf, len, pro);
 //	m_pfnHandleSendProc(*packetBuf);
 //}
 //VOID __declspec(naked) CPlugin::SendTo12Thunk(void)
@@ -136,10 +136,10 @@ int WSAAPI CPlugin::RecvStub(SOCKET s, char* buf, int bufsize, int flag)
 	int retSize = ((int (WSAAPI *)(SOCKET, char*, int, int))m_offsetRecv)(s, buf, bufsize, flag);
 	if (retSize != 0 && retSize != -1)
 	{
-		CContext ctx;
-		ctx.s = s;
-		CPacket* packetBuf = new CPacket((LPBYTE)buf, retSize, ctx);
-		packetBuf->SetType(IO_RECV);
+		CProperty pro;
+		pro.s = s;
+		CGPacket* packetBuf = new CGPacket((LPBYTE)buf, retSize, pro);
+		packetBuf->GetPacketProperty().ioType = IO_INPUT;
 		m_pfnHandleRecvProc(*packetBuf);
 	}
 	return retSize;

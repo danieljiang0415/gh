@@ -15,12 +15,15 @@
 
 #include "greyhat.h"
 
+
 #define CONFIG_FILE _T("config.ini")
 #define PLUGIN_DLL _T("Plugin.dll")
 
 HWND g_hmain_dlg;
 
-GLOBAL_ENV GlobalEnv;
+CPluginWrap* g_PluginWrap;
+CRuntimeContext RuntimeContext;
+
 void on_pagetab_notify(HWND htabctrl,UINT pnm_code) 
 {
 	switch ( pnm_code )
@@ -69,21 +72,19 @@ VOID WriteCoreLibFileExtraInfo(LPCTSTR lpcLocalFileName)
 
 DWORD WINAPI ThreadProc( LPVOID lParam )
 {
-	if (!Utility::File::IsFileExist(GlobalEnv.tszCoreDllPath))
+	CRuntimeContext *pContext = (CRuntimeContext *)lParam;
+
+	if (!Utility::File::IsFileExist(pContext->m_PluginPath.c_str()))
 	{
 		MessageBox(NULL, _T("找不到核心工作模块！"), TEXT("错误"), MB_OK);
-		//Tstring strUrl = Tstring(TEXT("http://cdsign.sinaapp.com/?do=load")) + Tstring(TEXT("&id=")) + GlobalEnv.tszGameName;
-
-		//if (FALSE == Utility::Http::HttpRead2File( strUrl.c_str(), GlobalEnv.tszCoreDllPath))
-		//{
-		//	MessageBox(NULL, _T("工具加载失败！"), TEXT("错误"), MB_OK);
-		//	return 0;
-		//}
+		return -1;
 	}
-
-	//Utility::log::XLogDbgStr(text("ThreadProc"));
-	DialogBox( GlobalEnv.hUiInst, MAKEINTRESOURCE( IDD_MAINDIALOG ), NULL, MainUIDlgProc );
-    FreeLibraryAndExitThread( GlobalEnv.hUiInst, 0 );
+	else
+	{
+		new CPluginWrap(pContext->m_PluginPath);
+	}
+	DialogBox(pContext->m_hRuntimeInstance, MAKEINTRESOURCE( IDD_MAINDIALOG ), NULL, MainUIDlgProc );
+    FreeLibraryAndExitThread(pContext->m_hRuntimeInstance, 0 );
     return 0;
 }
 
@@ -114,8 +115,8 @@ VOID init_tab_ctrl(HWND htabctrl)
 	InsertTab( htabctrl,	 text("封包视图"),			0 );
 	InsertTab( htabctrl,	 text("发送/多重发送"),		1 );
 
-	CreateDialog(GlobalEnv.hUiInst, MAKEINTRESOURCE(IDD_PKT_DIALOG), htabctrl, &CViewPage::ViewPageProc);
-	CreateDialog(GlobalEnv.hUiInst, MAKEINTRESOURCE(IDD_SD_DIALOG), htabctrl, &CSendPage::SendPageProc);
+	CreateDialog(RuntimeContext.m_hRuntimeInstance, MAKEINTRESOURCE(IDD_PKT_DIALOG), htabctrl, &CViewPage::ViewPageProc);
+	CreateDialog(RuntimeContext.m_hRuntimeInstance, MAKEINTRESOURCE(IDD_SD_DIALOG), htabctrl, &CSendPage::SendPageProc);
 
 
 	RECT rcClient, rcTabItem;
@@ -154,12 +155,12 @@ BOOL OnWMInitDlg( HWND hWnd, HWND hWndFocus, LPARAM lParam )
 	}
 
 	//Set Dialog Icon
-	SendMessage( hWnd, WM_SETICON, ICON_BIG, ( LPARAM )LoadIcon( GlobalEnv.hUiInst, MAKEINTRESOURCE( IDI_ICON_BIG ) ) );
+	SendMessage( hWnd, WM_SETICON, ICON_BIG, ( LPARAM )LoadIcon( RuntimeContext.m_hRuntimeInstance, MAKEINTRESOURCE( IDI_ICON_BIG ) ) );
 	/////////////////////////////////////////////////////////////////////////
 	// Create the tab common control.
 	// 
-	RegisterHexEditorClass( GlobalEnv.hUiInst );
-	//g_popup_menu = LoadMenu(GlobalEnv.hUiInst, text("hexedit"));
+	RegisterHexEditorClass( RuntimeContext.m_hRuntimeInstance );
+	//g_popup_menu = LoadMenu(RuntimeContext.m_hRuntimeInstance, text("hexedit"));
 
 
 	init_tab_ctrl(GetDlgItem(hWnd, IDC_PAGE_TAB));
@@ -209,38 +210,8 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 {
     if ( ul_reason_for_call == DLL_PROCESS_ATTACH )
     {
-		GlobalEnv.hUiInst = hModule;
-
-		Utility::Module::GetModuleName(GlobalEnv.hUiInst, GlobalEnv.tszUiDllName, MAX_PATH);
-		Utility::Module::GetModulePath(GlobalEnv.hUiInst, GlobalEnv.tszUiDllPath, MAX_PATH);
-
-		//Utility::Module::GetModuleName(NULL, GlobalEnv.tszGameName, MAX_PATH);
-		Utility::Module::GetModulePath(NULL, GlobalEnv.tszGamePath, MAX_PATH);
-
-		
-		_tcscpy(GlobalEnv.tszCfgFilePath, GlobalEnv.tszUiDllPath);
-		PathAppend(GlobalEnv.tszCfgFilePath, CONFIG_FILE);
-
-		GetPrivateProfileString( _T("基本信息"), _T("游戏"), _T(""), GlobalEnv.tszGameName, 128, GlobalEnv.tszCfgFilePath);
-
-#ifdef LOCAL_USE
-
-		_tcscpy(GlobalEnv.tszCoreDllPath, GlobalEnv.tszUiDllPath);
-		//_tcscpy(GlobalEnv.tszCoreDllName, GlobalEnv.tszGameName);
-		PathAppend(GlobalEnv.tszCoreDllPath, PLUGIN_DLL);
-		//_tcscat(GlobalEnv.tszCoreDllPath, _T("."));
-#else
-		_tcscpy(GlobalEnv.tszCoreDllPath, GlobalEnv.tszUiDllPath);
-		_tcscpy(GlobalEnv.tszCoreDllName, GlobalEnv.tszGameName);
-		_tcscat(GlobalEnv.tszCoreDllName, _T(".dll"));
-		PathAppend(GlobalEnv.tszCoreDllPath, GlobalEnv.tszCoreDllName);
-
-#endif
-
-		GlobalEnv.hUiInst = hModule;
-
-		CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)ThreadProc, NULL, 0, NULL );
-
+		RuntimeContext.InitContext(hModule);
+		CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)ThreadProc, &RuntimeContext, 0, NULL );
     }
 
     return TRUE;

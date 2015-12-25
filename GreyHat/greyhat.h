@@ -2,7 +2,6 @@
 
 #include <windows.h>
 #include <windowsx.h>
-#include "core.h"
 #include "hexedit.h"
 #include "Resource.h"
 #include "Utility.h"
@@ -12,6 +11,9 @@
 #include "sendpage.h"
 #include "filterpage.h"
 #include "ctrl.h"
+
+#include "Pluginwrap.h"
+#include"RuntimeContext.h"
 
 #define PACKET_SEC  L"PACKET"
 
@@ -61,38 +63,4 @@ HBRUSH OnCtrlColor( HWND hwnd, HDC hdc, HWND hwndChild, int type );
 
 
 extern HWND g_hmain_dlg;
-//#define id2handle(id)  GetDlgItem(g_hmain_dlg, id)
-
-struct GLOBAL_ENV{
-
-	HINSTANCE hUiInst;
-	HINSTANCE hCoreInst;
-
-	TCHAR tszUiDllPath[MAX_PATH];
-	TCHAR tszUiDllName[MAX_PATH];
-
-
-	TCHAR tszCfgFilePath[MAX_PATH];
-
-	TCHAR tszCoreDllName[MAX_PATH];
-	TCHAR tszCoreDllPath[MAX_PATH];
-
-//	TCHAR tszGameName[128];
-	TCHAR tszGameName[MAX_PATH];
-	TCHAR tszGamePath[MAX_PATH];
-
-	ATTACHPROCESS		pfnAttachProcess;
-	DETACHPROCESS		pfnDetachProcess;
-	DISPATCHGAMEDATA	pfnDispatchPacket;
-	//SETGLOBALENV			pfnSetGlobalEnvironment;
-
-};
-
-//struct GLOBAL_DATA
-//{
-//	list<CDataFilter*> DataFilterLink;
-//	CRITICAL_SECTION   CsDataFilter;
-//	CRITICAL_SECTION   CsPacket;
-//};
-
-extern GLOBAL_ENV GlobalEnv;
+extern CRuntimeContext RuntimeContext;

@@ -6,11 +6,11 @@
 using namespace std;
 
 
-class CPacketHelperSettingPage
+class CGPacketFilterSettingPage
 {
 public:
-	CPacketHelperSettingPage();
-	~CPacketHelperSettingPage();
+	CGPacketFilterSettingPage();
+	~CGPacketFilterSettingPage();
 
 
 public:
@@ -31,12 +31,8 @@ public:
 	HWND m_hKeyWord;
 	HWND m_hReplace;
 	HWND m_hAdvFilter;
-
-public:
-	list<CPacketHelper*>	  m_lstFilterList;
-	CRITICAL_SECTION  m_csFilterListCritialSection;
 };
 
 
 
-extern CPacketHelperSettingPage FilterSettingPage;
+extern CGPacketFilterSettingPage FilterSettingPage;

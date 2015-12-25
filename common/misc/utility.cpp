@@ -660,7 +660,7 @@ exit_proc:
 			return Tstring(pName);
 		}*/
 
-		Tstring GetDllPath(Tstring tstrDllName)
+		Tstring GetModulePath(Tstring& tstrDllName)
 		{
 			tchar szModuleFullPath[512];
 			GetModuleFileName(GetModuleHandle(tstrDllName.c_str()), szModuleFullPath, 512);

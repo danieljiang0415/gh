@@ -17,9 +17,6 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\misc\packet.cpp">
-      <Filter>common</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\misc\utility.cpp">
       <Filter>common</Filter>
     </ClCompile>
@@ -53,9 +50,6 @@
   <ItemGroup>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\misc\packet.h">
-      <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\PathOfExile\stdafx.h">
       <Filter>common</Filter>

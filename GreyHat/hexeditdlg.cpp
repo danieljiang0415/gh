@@ -4,7 +4,6 @@
 #include "greyhat.h"
 
 #include "ctrl.h"
-#include "core.h"
 
 
 DWORD WINAPI ThrdStepProc( LPVOID lpThreadParameter )
@@ -14,7 +13,7 @@ DWORD WINAPI ThrdStepProc( LPVOID lpThreadParameter )
 	DWORD dwInterval = 0;
 
 
-	dwInterval = Utility::IniAccess::GetPrivateKeyValInt(Tstring(GlobalEnv.tszCfgFilePath), _T("自动发包"), _T("间隔时间/ms"));
+	dwInterval = Utility::IniAccess::GetPrivateKeyValInt(	RuntimeContext.m_ConfigPath, _T("自动发包"), _T("间隔时间/ms"));
 	
 
 	pHexEditDlg->m_bIsSteping = TRUE;
@@ -63,12 +62,12 @@ DWORD WINAPI ThrdStepProc( LPVOID lpThreadParameter )
 		InvalidateRect(pHexEditDlg->m_hHexView, NULL, FALSE);
 		byte *pBuf = new byte[pHexEditDlg->m_uDataSize];
 		memcpy(pBuf, p, pHexEditDlg->m_uDataSize);
-		CPacket *pkt = (CPacket*)pHexEditDlg->GetUserData();
-		CContext ctx = pkt->GetContext();
-		CPacket *packetBuf = new CPacket((LPBYTE)pBuf, pHexEditDlg->m_uDataSize, ctx);//(CPacket*)pHexEditDlg->GetUserData();
+		CGPacket *pkt = (CGPacket*)pHexEditDlg->GetUserData();
+		CProperty pro = pkt->GetPacketProperty();
+		CGPacket *packetBuf = new CGPacket((LPBYTE)pBuf, pHexEditDlg->m_uDataSize, pro);//(CGPacket*)pHexEditDlg->GetUserData();
 		if (packetBuf)
 		{
-			CCoreLib::SendData(*packetBuf);
+			//CCoreLib::SendData(*packetBuf);
 			delete packetBuf;
 		}
 		
@@ -81,7 +80,7 @@ DWORD WINAPI ThrdStepProc( LPVOID lpThreadParameter )
 
 CHexEditDlg::CHexEditDlg()
 {
-	m_hInst = GlobalEnv.hUiInst;
+	m_hInst = RuntimeContext.m_hRuntimeInstance;
 
 	m_hWnd = NULL;
 	m_hParaendWnd = NULL;
@@ -208,7 +207,7 @@ BOOL CHexEditDlg::On_WM_InitDialog(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 	CHexEditDlg *pThisDlg = (CHexEditDlg*)lParam;
 	
 	pThisDlg->m_hHexView= CreateWindowEx( 0, TEXT("HexEdit32"), TEXT(""), 
-		WS_CHILD | WS_VISIBLE, 0, 0, 1, 1, hwnd, NULL/*( HMENU )IDC_HEX_EDIT*/, GlobalEnv.hUiInst, 0 ); 
+		WS_CHILD | WS_VISIBLE, 0, 0, 1, 1, hwnd, NULL/*( HMENU )IDC_HEX_EDIT*/, RuntimeContext.m_hRuntimeInstance, 0 ); 
 
 	SetWindowLongPtr(hwnd, GWL_USERDATA, (DWORD_PTR)pThisDlg);
 
@@ -314,7 +313,7 @@ void CHexEditDlg::On_WM_Command( HWND hWnd, int id, HWND hWndCtl, UINT codeNotif
 
 HWND CHexEditDlg::Create( LPTSTR lpName, HWND hParaent)
 {
-	HWND hDlg = CreateDialogParam(GlobalEnv.hUiInst, lpName/*MAKEINTRESOURCE(IDD_HEXDLG)*/, hParaent, DlgProc, (LPARAM)this);
+	HWND hDlg = CreateDialogParam(RuntimeContext.m_hRuntimeInstance, lpName/*MAKEINTRESOURCE(IDD_HEXDLG)*/, hParaent, DlgProc, (LPARAM)this);
 	ShowWindow(hDlg,SW_SHOW);
 	return hDlg;
 }

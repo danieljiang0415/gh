@@ -55,6 +55,11 @@ LPBYTE CGPacket::GetBuffer()
 {
 	return m_pBuf;
 }
+
+LPBYTE CGPacket::GetRawBuffer()
+{
+	return m_pRawBuf;
+}
 DWORD  CGPacket::GetBufferLen()
 {
 	return m_dwSize;

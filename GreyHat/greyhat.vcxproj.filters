@@ -18,9 +18,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="core.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ctrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -48,14 +45,17 @@
     <ClCompile Include="..\common\misc\utility.cpp">
       <Filter>common</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\misc\packet.cpp">
+    <ClCompile Include="..\common\misc\GPacket.cpp">
       <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="PluginWrap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RuntimeContext.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="core.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ctrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -86,8 +86,14 @@
     <ClInclude Include="..\common\misc\utility.h">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\misc\packet.h">
+    <ClInclude Include="..\common\misc\GPacket.h">
       <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="PluginWrap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RuntimeContext.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

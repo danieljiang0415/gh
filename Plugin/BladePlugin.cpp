@@ -17,17 +17,18 @@ CBladePlugin::~CBladePlugin()
 {
 }
 
-void CBladePlugin::SendData(CPacket& packetBuf)
+void CBladePlugin::SendData(CGPacket& packetBuf)
 {
-	CContext ctx;
-	ctx = packetBuf.GetContext();
-	LPVOID thisPointer = (LPVOID)*(ULONG*)((ULONG)ctx.param1+0x40);
-	LPVOID lparam = ctx.param2;
+	
+	CProperty pro;
+	pro = packetBuf.GetPacketProperty();
+	LPVOID thisPointer = (LPVOID)*(ULONG*)((ULONG)pro.Param1+0x40);
+	LPVOID lparam = pro.Param2;
 
 	DWORD (WINAPI*detourGameEncrype)(LPBYTE,  DWORD, LPBYTE, DWORD, LPVOID) = (DWORD(WINAPI*)(LPBYTE,  DWORD, LPBYTE, DWORD, LPVOID))m_ulPatchAddr;
 
-	LPBYTE lpBuffer = packetBuf.GetRawData();
-	DWORD  dwSize = packetBuf.GetDataLen();
+	LPBYTE lpBuffer = packetBuf.GetBuffer();
+	DWORD  dwSize = packetBuf.GetBufferLen();
 	BYTE*	pOutBuff = new BYTE[0x1000];
 	DWORD	dwRetSize = 0;
 	__asm
@@ -41,7 +42,7 @@ void CBladePlugin::SendData(CPacket& packetBuf)
 		call detourGameEncrype
 		mov dwRetSize, eax
 	}
-	send(ctx.s, (const char*)pOutBuff, dwRetSize, 0);
+	send(pro.s, (const char*)pOutBuff, dwRetSize, 0);
 	delete pOutBuff;
 }
 
@@ -104,12 +105,12 @@ VOID __declspec(naked) CBladePlugin::detourGameEncrypeThunk()
 
 VOID WINAPI CBladePlugin::detourGameEncrype(LPVOID NetObj, LPBYTE lpInBuffer, DWORD dwInSize, LPBYTE lpOutBuffer, DWORD dwOutSize, LPVOID lpParam)
 {
-	CContext ctx;
-	ctx.s = *(SOCKET*)((ULONG)NetObj+0x10);
-	ctx.param1 = NetObj;
-	ctx.param2 = lpParam;
-	CPacket* packetBuf = new CPacket((LPBYTE)lpInBuffer, dwInSize, ctx);
-	packetBuf->SetType(IO_SEND);
+	CProperty pro;
+	pro.s = *(SOCKET*)((ULONG)NetObj+0x10);
+	pro.Param1 = NetObj;
+	pro.Param2 = lpParam;
+	CGPacket* packetBuf = new CGPacket((LPBYTE)lpInBuffer, dwInSize, pro);
+	packetBuf->GetPacketProperty().ioType = IO_OUTPUT;
 
 	m_pfnHandleSendProc(*packetBuf);
 }

@@ -26,18 +26,30 @@ CPluginBase::~CPluginBase()
 {
 }
 
-void CPluginBase::AddPackageProcessor(CGPacketProcessor& processor)
+void CPluginBase::ClearPacketFilters()
 {
-	CGPacketProcessor *pNewProcessor = new CGPacketProcessor(processor);
+	EnterCriticalSection(&m_ListCritialSection);
+	list<CGPacketFilter*>::iterator i;
+	for (i = m_PacketProcessorList.begin(); i != m_PacketProcessorList.end(); i++)
+	{
+		delete *i;
+	}
+	m_PacketProcessorList.clear();
+	LeaveCriticalSection(&m_ListCritialSection);
+}
+
+void CPluginBase::AddPacketFilter(CGPacketFilter& processor)
+{
+	CGPacketFilter *pNewProcessor = new CGPacketFilter(processor);
 	EnterCriticalSection(&m_ListCritialSection);
 	m_PacketProcessorList.push_back(pNewProcessor);
 	LeaveCriticalSection(&m_ListCritialSection);
 }
 
-void CPluginBase::DeletePackageProcessor(CGPacketProcessor& processor)
+void CPluginBase::DeletePacketFilter(CGPacketFilter& processor)
 {
 	EnterCriticalSection(&m_ListCritialSection);
-	list<CGPacketProcessor*>::iterator i;
+	list<CGPacketFilter*>::iterator i;
 	for (i = m_PacketProcessorList.begin(); i != m_PacketProcessorList.end(); i++)
 	{
 		if (processor.m_strUUID == (*i)->m_strUUID) 
@@ -61,10 +73,10 @@ void CPluginBase::SetReplaceEnable(BOOL bEnable)
 void CPluginBase::PreProcessGPacket(CGPacket&packet)
 {
 	EnterCriticalSection(&m_ListCritialSection);
-	list<CGPacketProcessor*>::iterator i;
+	list<CGPacketFilter*>::iterator i;
 	for (i = m_PacketProcessorList.begin(); i != m_PacketProcessorList.end(); i++)
 	{
-		CGPacketProcessor* p = *i;
+		CGPacketFilter* p = *i;
 		if (m_bFileterFunEnable && p->m_ProcessType == PROCESS_FILTER)
 		{
 			if (packet.Find(p->m_strKey) || packet.AdvancedMach(p->m_strAdvanceKey))

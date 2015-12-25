@@ -4,17 +4,17 @@
 #include <list>
 #include"GPacket.h"
 
-class CPacket;
+class CGPacket;
 
 typedef VOID (WINAPI*SENDPROCHANDLER)(CGPacket& packetBuf);
-typedef VOID (WINAPI*RECVPROCHANDLER)(CPacket& packetBuf);
+typedef VOID (WINAPI*RECVPROCHANDLER)(CGPacket& packetBuf);
 
 class CPluginBase
 {
 public:
 	CPluginBase();
 	~CPluginBase();
-	virtual void SendData(CPacket& packetBuf) = 0;
+	virtual void SendData(CGPacket& packetBuf) = 0;
 	virtual BOOL InstallPlugin(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc) = 0;
 	virtual BOOL UnInstallPlugin() = 0;
 
@@ -27,8 +27,9 @@ protected:
 	static RECVPROCHANDLER m_pfnHandleRecvProc;
 
 public:
-	void AddPackageProcessor(CGPacketProcessor&);
-	void DeletePackageProcessor(CGPacketProcessor&);
+	void AddPacketFilter(CGPacketFilter&);
+	void DeletePacketFilter(CGPacketFilter&);
+	void ClearPacketFilters();
 	void SetFilterEnable(BOOL bEnable);
 	void SetReplaceEnable(BOOL bEnable);
 	void PreProcessGPacket(CGPacket&);
@@ -36,9 +37,9 @@ public:
 public:
 	BOOL							m_bFileterFunEnable;
 	BOOL							m_bReplaceFunEnable;
-	std::list<CGPacketProcessor*>	m_PacketProcessorList;
+	std::list<CGPacketFilter*>		m_PacketProcessorList;
 	CRITICAL_SECTION				m_ListCritialSection;
 
-	static CPluginBase*					m_PlugInstance;
+	static CPluginBase*				m_PlugInstance;
 };
 

@@ -6,7 +6,7 @@ class CDOMPlugin :
 public:
 	CDOMPlugin();
 	~CDOMPlugin();
-	void SendData(CPacket& packetBuf);
+	void SendData(CGPacket& packetBuf);
 	BOOL InstallPlugin(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc);
 	BOOL UnInstallPlugin();
 private:
@@ -21,7 +21,7 @@ private:
 
 /*
 CPU Disasm
-Address   Hex dump          Command                                  Comments this->[ECX]--->s, param1->size, param2->buffer
+Address   Hex dump          Command                                  Comments this->[ECX]--->s, Param1->size, param2->buffer
 006EE060  /$  55            PUSH EBP                                 ; ¼ÓÃÜº¯Êý
 006EE061  |.  8BE9          MOV EBP,ECX
 006EE063  |.  57            PUSH EDI

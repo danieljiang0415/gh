@@ -4,3 +4,7 @@ EXPORTS
 	Install
 	UnInstall
 	Send
+	AddFilter
+	DeleteFilter
+	EnableFilter
+	EnableReplace

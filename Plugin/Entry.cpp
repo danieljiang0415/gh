@@ -69,11 +69,47 @@ BOOL APIENTRY UnInstall()
 		return FALSE;
 }
 
-VOID APIENTRY Send(CPacket& packetBuf)
+VOID APIENTRY Send(CGPacket& packetBuf)
 {
 	if (pPlugin)
 	{
 		pPlugin->SendData(packetBuf);
 	}
 		
+}
+
+void APIENTRY AddFilter(CGPacketFilter& filter)
+{
+	if (pPlugin)
+	{
+		pPlugin->AddPacketFilter(filter);
+	}
+}
+void APIENTRY DeleteFilter(CGPacketFilter& filter)
+{
+	if (pPlugin)
+	{
+		pPlugin->DeletePacketFilter(filter);
+	}
+}
+void APIENTRY ClearPacketFilters()
+{
+	if (pPlugin)
+	{
+		pPlugin->ClearPacketFilters();
+	}
+}
+void APIENTRY EnableFilter(BOOL bEnable)
+{
+	if (pPlugin)
+	{
+		pPlugin->SetFilterEnable(bEnable);
+	}
+}
+void APIENTRY EnableReplace(BOOL bEnable)
+{
+	if (pPlugin)
+	{
+		pPlugin->SetReplaceEnable(bEnable);
+	}
 }

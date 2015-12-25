@@ -109,7 +109,6 @@
   <ItemGroup>
     <ClCompile Include="..\common\misc\dbghook.cpp" />
     <ClCompile Include="..\common\misc\GPacket.cpp" />
-    <ClCompile Include="..\common\misc\packet.cpp" />
     <ClCompile Include="..\common\misc\utility.cpp" />
     <ClCompile Include="BladePlugin.cpp" />
     <ClCompile Include="Entry.cpp" />
@@ -127,7 +126,6 @@
   <ItemGroup>
     <ClInclude Include="..\common\misc\dbghook.h" />
     <ClInclude Include="..\common\misc\GPacket.h" />
-    <ClInclude Include="..\common\misc\packet.h" />
     <ClInclude Include="..\common\misc\utility.h" />
     <ClInclude Include="..\PathOfExile\stdafx.h" />
     <ClInclude Include="BladePlugin.h" />

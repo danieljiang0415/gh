@@ -4,7 +4,6 @@
 #include "detours.h"
 
 #include <tchar.h>
-#include "packet.h"
 
 #pragma comment(lib,"ws2_32.lib")
 #pragma comment(lib,"detours.lib")
@@ -15,7 +14,7 @@ class CPlugin :
 public:
 	CPlugin();
 	~CPlugin();
-	void SendData(CPacket& packetBuf);
+	void SendData(CGPacket& packetBuf);
 	BOOL InstallPlugin(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc);
 	BOOL UnInstallPlugin();
 	//VOID SetPacketHandler(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc);

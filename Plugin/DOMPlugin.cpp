@@ -15,16 +15,16 @@ CDOMPlugin::~CDOMPlugin()
 {
 }
 
-void CDOMPlugin::SendData(CPacket& packetBuf)
+void CDOMPlugin::SendData(CGPacket& packetBuf)
 {
-	CContext ctx;
-	ctx = packetBuf.GetContext();
-	LPVOID thisPointer = ctx.param1;
+	CProperty ctx;
+	ctx = packetBuf.GetPacketProperty();
+	LPVOID thisPointer = ctx.Param1;
 
 	bool (WINAPI*detourGameEncrype)(DWORD, LPBYTE) = (bool (WINAPI*)(DWORD, LPBYTE))m_ulPatchAddr;
 
-	LPBYTE lpBuffer = packetBuf.GetRawData()+2;
-	DWORD  dwSize = packetBuf.GetDataLen()-2;
+	LPBYTE lpBuffer = packetBuf.GetBuffer()+2;
+	DWORD  dwSize = packetBuf.GetBufferLen()-2;
 	__asm
 	{
 		mov ecx, thisPointer
@@ -85,11 +85,11 @@ VOID __declspec(naked) CDOMPlugin::detourGameEncrypeThunk()
 
 VOID WINAPI CDOMPlugin::detourGameEncrype(LPVOID lpParam , DWORD dwSize, LPBYTE lpBuffer)
 {
-	CContext ctx;
+	CProperty ctx;
 	ctx.s = *(SOCKET*)lpParam;
-	ctx.param1 = lpParam;
-	CPacket* packetBuf = new CPacket((LPBYTE)lpBuffer-2, dwSize+2, ctx);
-	packetBuf->SetType(IO_SEND);
+	ctx.Param1 = lpParam;
+	CGPacket* packetBuf = new CGPacket((LPBYTE)lpBuffer-2, dwSize+2, ctx);
+	packetBuf->GetPacketProperty().ioType = IO_OUTPUT;
 
 	m_pfnHandleSendProc(*packetBuf);
 }

@@ -49,6 +49,7 @@ public:
 	CGPacket(LPBYTE lpData, DWORD dwLen, CProperty& Property);
 public:
 	LPBYTE GetBuffer();
+	LPBYTE GetRawBuffer();
 	DWORD  GetBufferLen();
 	BOOL   Find(LPBYTE lpKey, DWORD dwKeyLen);
 	VOID   Replace(LPBYTE lpKey, DWORD dwKeyLen, LPBYTE lpReplace, DWORD dwReplaceLen);
@@ -73,10 +74,10 @@ enum PROCESS_TYPE
 	PROCESS_UNDEFINE
 };
 
-class CGPacketProcessor
+class CGPacketFilter
 {
 public:
-	CGPacketProcessor()
+	CGPacketFilter()
 	{
 		m_strKey		=	_T("");
 		m_strReplace	=	_T("");;
@@ -85,11 +86,11 @@ public:
 		m_strUUID = Utility::Msic::GenUUID();
 	};
 
-	~CGPacketProcessor()
+	~CGPacketFilter()
 	{
 	};
 
-	CGPacketProcessor(CGPacketProcessor& processor)
+	CGPacketFilter(CGPacketFilter& processor)
 	{
 		m_strAdvanceKey = processor.m_strAdvanceKey;
 		m_strKey = processor.m_strKey;

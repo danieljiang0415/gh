@@ -17,7 +17,7 @@ LRESULT CALLBACK  CSendPage::NewEditCtrlProc( HWND hwnd, UINT uMsg, WPARAM wPara
 
 		tstrTemp = PreProcessPackeTstring( tstrEditHexStr );
 
-		CPacket* pPacket = (CPacket*)GetWindowLongPtr(hwnd, GWL_USERDATA);
+		CGPacket* pPacket = (CGPacket*)GetWindowLongPtr(hwnd, GWL_USERDATA);
 
 		HWND hHexDlg;
 
@@ -146,7 +146,7 @@ DWORD WINAPI CSendPage::ThrdSBNProc( LPVOID lpThreadParameter )
 	TCHAR tszTemp[256];
 
 
-	dwInterval = Utility::IniAccess::GetPrivateKeyValInt(GlobalEnv.tszCfgFilePath, _T("自动发包"), _T("间隔时间/ms"));
+	dwInterval = Utility::IniAccess::GetPrivateKeyValInt(RuntimeContext.m_ConfigPath, _T("自动发包"), _T("间隔时间/ms"));
 
 
 	for ( int i=0; i < 15; i++ )
@@ -317,13 +317,13 @@ VOID CSendPage:: OnButtonSend(DWORD dwButtonId)
 			SetText(GetDlgItem(SendPage.m_hWnd,SendPage.m_CtrlTable[dwIndex].dwEditBoxId), tstrTemp);
 
 
-			CPacket* pPacket = (CPacket*)GetWindowLongPtr(GetDlgItem(SendPage.m_hWnd,SendPage.m_CtrlTable[dwIndex].dwEditBoxId), GWL_USERDATA);
+			CGPacket* pPacket = (CGPacket*)GetWindowLongPtr(GetDlgItem(SendPage.m_hWnd,SendPage.m_CtrlTable[dwIndex].dwEditBoxId), GWL_USERDATA);
 
-			CPacket* packetBuf = new CPacket(lpHexBuf, dwLen, pPacket->GetContext());
-			if (packetBuf)
+			CGPacket* pNewPacket = new CGPacket(lpHexBuf, dwLen, pPacket->GetPacketProperty());
+			if (pNewPacket)
 			{
-				CCoreLib::SendData( *packetBuf);
-				delete packetBuf;
+//				CCoreLib::SendData( *pNewPacket);
+				delete pNewPacket;
 			}
 			delete[]lpHexBuf;
 		}
@@ -339,14 +339,14 @@ VOID CSendPage::OnButtonSaveAllData()
 	{
 		strTemp = GetText(GetDlgItem( SendPage.m_hWnd, SendPage.m_CtrlTable[i].dwEditBoxId));
 		_stprintf( tszTemp, _T("封包[%d]"), i );
-		Utility::IniAccess::SetPrivateKeyValString(GlobalEnv.tszCfgFilePath, _T("发送封包"), tszTemp, strTemp);
+		Utility::IniAccess::SetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("发送封包"), tszTemp, strTemp);
 
 		_stprintf( tszTemp, _T("CHECK[%d]"),i );
-		Utility::IniAccess::SetPrivateKeyValString(GlobalEnv.tszCfgFilePath, _T("发送封包"), tszTemp, 
+		Utility::IniAccess::SetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("发送封包"), tszTemp, 
 			BST_CHECKED==Button_GetCheck( GetDlgItem( SendPage.m_hWnd, SendPage.m_CtrlTable[i].dwCheckId) ) ? _T("1"):_T("0"));
 	}
 
-	Utility::IniAccess::SetPrivateKeyValString(GlobalEnv.tszCfgFilePath, _T("自动发包"), _T("间隔时间/ms"), _T("100"));
+	Utility::IniAccess::SetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("自动发包"), _T("间隔时间/ms"), _T("100"));
 }
 
 VOID CSendPage::OnButtonClear()
@@ -363,13 +363,13 @@ VOID CSendPage::RestoreSendViewSettings()
 	for (int i=0; i<15; i++){
 
 		_stprintf( tszTemp, _T("封包[%d]"), i );
-		strTemp = Utility::IniAccess::GetPrivateKeyValString( GlobalEnv.tszCfgFilePath, _T("发送封包"), tszTemp);
+		strTemp = Utility::IniAccess::GetPrivateKeyValString( RuntimeContext.m_ConfigPath, _T("发送封包"), tszTemp);
 
 		SetText(GetDlgItem(SendPage.m_hWnd, SendPage.m_CtrlTable[i].dwEditBoxId), strTemp);
 
 		BOOL bIsChecked;
 		_stprintf( tszTemp, _T("CHECK[%d]"), i );
-		bIsChecked = Utility::IniAccess::GetPrivateKeyValInt(GlobalEnv.tszCfgFilePath, _T("发送封包"), tszTemp);
+		bIsChecked = Utility::IniAccess::GetPrivateKeyValInt(RuntimeContext.m_ConfigPath, _T("发送封包"), tszTemp);
 
 		Button_SetCheck(GetDlgItem(SendPage.m_hWnd,  SendPage.m_CtrlTable[i].dwCheckId), bIsChecked);
 

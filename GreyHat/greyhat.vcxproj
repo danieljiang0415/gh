@@ -108,17 +108,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\common\misc\packet.cpp" />
+    <ClCompile Include="..\common\misc\GPacket.cpp" />
     <ClCompile Include="..\common\misc\utility.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="core.cpp" />
     <ClCompile Include="ctrl.cpp" />
     <ClCompile Include="filterpage.cpp" />
     <ClCompile Include="greyhat.cpp" />
     <ClCompile Include="hexedit.cpp" />
     <ClCompile Include="hexeditdlg.cpp" />
+    <ClCompile Include="PluginWrap.cpp" />
+    <ClCompile Include="RuntimeContext.cpp" />
     <ClCompile Include="sendpage.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -127,15 +128,16 @@
     <ClCompile Include="viewpage.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\common\misc\packet.h" />
+    <ClInclude Include="..\common\misc\GPacket.h" />
     <ClInclude Include="..\common\misc\utility.h" />
-    <ClInclude Include="core.h" />
     <ClInclude Include="ctrl.h" />
     <ClInclude Include="filterpage.h" />
     <ClInclude Include="greyhat.h" />
     <ClInclude Include="hexedit.h" />
     <ClInclude Include="hexeditdlg.h" />
+    <ClInclude Include="PluginWrap.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="RuntimeContext.h" />
     <ClInclude Include="sendpage.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="viewpage.h" />

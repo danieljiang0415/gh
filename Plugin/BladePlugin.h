@@ -7,7 +7,7 @@ public:
 	CBladePlugin();
 	~CBladePlugin();
 
-	void SendData(CPacket& packetBuf);
+	void SendData(CGPacket& packetBuf);
 	BOOL InstallPlugin(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc);
 	BOOL UnInstallPlugin();
 private:

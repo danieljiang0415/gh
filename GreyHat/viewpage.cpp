@@ -2,8 +2,7 @@
 #include <strsafe.h>
 #include "viewpage.h"
 #include "filterpage.h"
-#include "Packet.h"
-#include "core.h"
+#include "GPacket.h"
 
 
 
@@ -19,7 +18,7 @@ CViewPage::~CViewPage()
 
 }
 
-VOID CViewPage::ShowPacket(HWND hwnd, CPacket& packetBuf)
+VOID CViewPage::ShowPacket(HWND hwnd, CGPacket& packetBuf)
 {
 	try
 	{
@@ -29,8 +28,8 @@ VOID CViewPage::ShowPacket(HWND hwnd, CPacket& packetBuf)
 		LPBYTE lpbRawData;
 		DWORD  dwPacketLen, dwItem;
 
-		lpbRawData = packetBuf.GetRawData();
-		dwPacketLen = packetBuf.GetDataLen();
+		lpbRawData = packetBuf.GetRawBuffer();
+		dwPacketLen = packetBuf.GetBufferLen();
 
 		dwItem = LvGetItemCount( ViewPage.m_hListView );
 		//
@@ -52,9 +51,7 @@ VOID CViewPage::ShowPacket(HWND hwnd, CPacket& packetBuf)
 		tstrTemp = Utility::StringLib::Hex2Tstring(lpbRawData, dwPacketLen>64?64:dwPacketLen );
 		LvSetText( ViewPage.m_hListView,(LPTSTR)tstrTemp.c_str(), dwItem, 4 );
 
-
-		_itot(packetBuf.GetRemotePort(), tszTemp, 10);
-		tstrTemp = packetBuf.GetRemoteIp() + Tstring(_T(":")) + Tstring(tszTemp);
+		tstrTemp = packetBuf.GetPacketProperty().strIpAddr + Tstring(_T(":")) + packetBuf.GetPacketProperty().strPort;
 		LvSetText(ViewPage.m_hListView, (LPTSTR)tstrTemp.c_str(), dwItem, 5);
 
 		if (ViewPage.m_bEnableScroll)
@@ -119,13 +116,13 @@ BOOL CViewPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 	LvInsertColumn( ViewPage.m_hListView, _T("IP/端口"),  140, 5 );
 
 
-	RegisterHexEditorClass( GlobalEnv.hUiInst );
-	ViewPage.m_hMenu = LoadMenu( GlobalEnv.hUiInst, _T("transmit") );
+	RegisterHexEditorClass( RuntimeContext.m_hRuntimeInstance );
+	ViewPage.m_hMenu = LoadMenu( RuntimeContext.m_hRuntimeInstance, _T("transmit") );
 
 	//RECT rc;
 	//GetClientRect(GetDlgItem(hwnd, IDC_HEXV), &rc);
 	ViewPage.m_hHexView = CreateWindowEx( 0, text("HexEdit32"), text(""), 
-		WS_CHILD | WS_VISIBLE, 0, 0, 1, 1, ViewPage.m_hWnd, NULL/*( HMENU )IDC_HEXVIEW*/, GlobalEnv.hUiInst, 0 ); 
+		WS_CHILD | WS_VISIBLE, 0, 0, 1, 1, ViewPage.m_hWnd, NULL/*( HMENU )IDC_HEXVIEW*/, RuntimeContext.m_hRuntimeInstance, 0 ); 
 	HexEdit_SetReadOnly(ViewPage.m_hHexView, TRUE);
 
 	CheckDlgButton( hwnd, IDC_ENABLE_LOG,		FALSE );
@@ -141,10 +138,9 @@ BOOL CViewPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 
 	ViewPage.m_hBlockEvent = CreateEvent( NULL, FALSE, FALSE, NULL );
 	InitializeCriticalSection( &ViewPage.m_csPacketListCriticalSection );
-	InitializeCriticalSection( &FilterSettingPage.m_csFilterListCritialSection);
 
-	if (FALSE == ViewPage.m_CoreLib.InstallPlugin(&OnProcessSendData, &OnProcessRecvData))
-		MessageBox(NULL, TEXT("安装钩子失败！"), TEXT("错误"), MB_OK);
+//	if (FALSE == ViewPage.m_CoreLib.InstallPlugin(&OnProcessSendData, &OnProcessRecvData))
+//		MessageBox(NULL, TEXT("安装钩子失败！"), TEXT("错误"), MB_OK);
 
 	//CPluginBase gameBox = new CPlugin;
 
@@ -155,9 +151,6 @@ BOOL CViewPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 	ViewPage.m_bShowSend		= TRUE;
 	ViewPage.m_bAutoShowContent = TRUE;
 
-	//GetObject (GetStockObject (SYSTEM_FONT), sizeof (lf), &lf) ;
-
-	// Initialize the CHOOSEFONT structure
 
 	ViewPage.m_ChooseFont.lStructSize    = sizeof (CHOOSEFONT) ;
 	ViewPage.m_ChooseFont.hwndOwner      = hwnd ;
@@ -180,10 +173,7 @@ BOOL CViewPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 	//	MessageBox(hwnd, _T("Hotkey 'ALT+b' registered, using MOD_NOREPEAT flag\n"), _T("!!"), MB_OK);
 	//}
 
-	CreateDialog(GlobalEnv.hUiInst, MAKEINTRESOURCE(IDD_ST_DIALOG), hwnd, &CPacketHelperSettingPage::FilterPageMessageProc);
-
-	ViewPage.m_hUpdateThrd = CreateThread(NULL, NULL,  &CoreLibUpdataThread, NULL, 0, NULL);
-
+	CreateDialog(RuntimeContext.m_hRuntimeInstance, MAKEINTRESOURCE(IDD_ST_DIALOG), hwnd, &CGPacketFilterSettingPage::FilterPageMessageProc);
 	return TRUE;
 }
 
@@ -276,8 +266,8 @@ VOID CViewPage::OnWmCommand( HWND hWnd, int id, HWND hWndCtl, UINT codeNotify )
 			nSel = LvGetSelItemId(ViewPage.m_hListView);
 			if ( nSel != -1 )
 			{
-				CPacket *pPacket = NULL;
-				pPacket = ( CPacket* )LvGetData( ViewPage.m_hListView, nSel );
+				CGPacket *pPacket = NULL;
+				pPacket = ( CGPacket* )LvGetData( ViewPage.m_hListView, nSel );
 				if ( pPacket )
 				{
 					for ( int i=0; i < 15; i++ )
@@ -285,7 +275,7 @@ VOID CViewPage::OnWmCommand( HWND hWnd, int id, HWND hWndCtl, UINT codeNotify )
 						if ( id == SendPage.m_CtrlTable[i].dwMenuId )
 						{
 							SetText(GetDlgItem( SendPage.m_hWnd, SendPage.m_CtrlTable[i].dwEditBoxId),
-								Utility::StringLib::Hex2Tstring(pPacket->GetBackendData(), pPacket->GetDataLen()));
+								Utility::StringLib::Hex2Tstring(pPacket->GetBuffer(), pPacket->GetBufferLen()));
 							SetWindowLongPtr(GetDlgItem(SendPage.m_hWnd, SendPage.m_CtrlTable[i].dwEditBoxId), GWL_USERDATA, (DWORD_PTR)pPacket);
 						}
 					}					
@@ -321,13 +311,13 @@ LRESULT ProcessCustomDraw(LPNMHDR lParam)
 		COLORREF itemColor = RGB(0, 0, 0);
 		int iColumn = lplvcd->iSubItem;
 		int iRow = (int)lplvcd->nmcd.dwItemSpec;
-		CPacket* pPacket = (CPacket*)LvGetData(lplvcd->nmcd.hdr.hwndFrom, lplvcd->nmcd.dwItemSpec);
+		CGPacket* pPacket = (CGPacket*)LvGetData(lplvcd->nmcd.hdr.hwndFrom, lplvcd->nmcd.dwItemSpec);
 		if (pPacket)
 		{
-			PACKET_TYPE eType = pPacket->GetType();
-			if (eType == IO_SEND)
+			PACKET_IO eType = pPacket->GetPacketProperty().ioType;
+			if (eType == IO_OUTPUT)
 				itemColor = RGB(196, 238, 254);
-			else if (eType == IO_RECV)
+			else if (eType == IO_INPUT)
 				itemColor = RGB(253, 241, 249);
 
 			lplvcd->clrTextBk = itemColor;
@@ -357,13 +347,13 @@ BOOL CViewPage::OnWmNotify( HWND hwnd, INT id, LPNMHDR pNMHDR)
 	{
 	case LVN_ITEMCHANGED:
 		{
-			CPacket *pPacket = NULL;
+			CGPacket *pPacket = NULL;
 			nSel = LvGetSelItemId(ViewPage.m_hListView);
 			if (nSel != -1) {
-				pPacket = ( CPacket* )LvGetData( ViewPage.m_hListView, nSel );
+				pPacket = ( CGPacket* )LvGetData( ViewPage.m_hListView, nSel );
 				if ( pPacket )
 				{
-					HexEdit_LoadBuffer( ViewPage.m_hHexView, pPacket->GetBackendData(), pPacket->GetDataLen() );
+					HexEdit_LoadBuffer( ViewPage.m_hHexView, pPacket->GetBuffer(), pPacket->GetBufferLen() );
 				}
 			}
 
@@ -371,10 +361,10 @@ BOOL CViewPage::OnWmNotify( HWND hwnd, INT id, LPNMHDR pNMHDR)
 		break;
 	case NM_RCLICK:
 		{
-			CPacket *ppkt = NULL;
+			CGPacket *ppkt = NULL;
 			nSel = LvGetSelItemId(ViewPage.m_hListView);
 			if (nSel != -1) {
-				ppkt = ( CPacket* )LvGetData( ViewPage.m_hListView, nSel );
+				ppkt = ( CGPacket* )LvGetData( ViewPage.m_hListView, nSel );
 
 				POINT point;
 				GetCursorPos( &point );
@@ -394,7 +384,7 @@ BOOL CViewPage::OnWmNotify( HWND hwnd, INT id, LPNMHDR pNMHDR)
 			{
 				nSel = LvGetSelItemId(ViewPage.m_hListView);
 				if (nSel != -1) {
-					CPacket *pPacket = (CPacket *)LvGetData( ViewPage.m_hListView, nSel );
+					CGPacket *pPacket = (CGPacket *)LvGetData( ViewPage.m_hListView, nSel );
 					delete pPacket;
 					ListView_DeleteItem( ViewPage.m_hListView, nSel );
 					LVITEM lvi = {0};
@@ -422,13 +412,10 @@ BOOL CViewPage::OnWmNotify( HWND hwnd, INT id, LPNMHDR pNMHDR)
 VOID CViewPage::OnWmClose(HWND hwnd)
 {
 	TerminateThread(ViewPage.m_hUpdateThrd, 0);
-	ViewPage.m_CoreLib.UnInstallPlugin();
 	FreePackets();
-
-	UnregisterHexEditorClass( GlobalEnv.hUiInst );
+	UnregisterHexEditorClass( RuntimeContext.m_hRuntimeInstance );
 	DestroyMenu( ViewPage.m_hMenu );
 
-	DeleteCriticalSection(&FilterSettingPage.m_csFilterListCritialSection);
 	DeleteCriticalSection(&ViewPage.m_csPacketListCriticalSection); 
 }
 
@@ -439,8 +426,8 @@ VOID CViewPage::FreePackets()
 	dwItemCount = LvGetItemCount(ViewPage.m_hListView);
 	for ( int i=0; i<dwItemCount; i++ )
 	{
-		CPacket* pPacket;
-		pPacket = (CPacket*)LvGetData(ViewPage.m_hListView, i );
+		CGPacket* pPacket;
+		pPacket = (CGPacket*)LvGetData(ViewPage.m_hListView, i );
 
 		delete pPacket;
 	}
@@ -451,24 +438,9 @@ VOID CViewPage::FreePackets()
 //00 10 00 08 00 0a 00 00 00 00 00 00 00 00 00 00 25 29 f6 04 8f 00 71 50 
 //DWORD dwPlayerId;
 
-VOID CALLBACK CViewPage::OnProcessSendData( CPacket& packetBuf )
+VOID CALLBACK CViewPage::OnProcessSendData( CGPacket& packetBuf )
 {
 	EnterCriticalSection( &ViewPage.m_csPacketListCriticalSection );
-
-	if (ViewPage.m_bShowSend == FALSE)
-		packetBuf.SetSkipFlag(TRUE);
-	//////////////////////////////////////////////////////////////////////////
-
-	ProcessPacket(packetBuf);//处理包，包括替换
-
-	if ( (packetBuf.IsSkipped() == TRUE /*&& ViewPage.m_bEnableFilter*/) ||
-		ViewPage.m_bEnbleGrab == FALSE )//skip掉或者没截包，则删除该包
-	{
-		delete &packetBuf;
-		LeaveCriticalSection( &ViewPage.m_csPacketListCriticalSection );
-		return;
-	}
-
 
 	ShowPacket(ViewPage.m_hWnd, packetBuf);
 	if ( ViewPage.m_bEnableBlock )//如果是block 模式
@@ -479,67 +451,41 @@ VOID CALLBACK CViewPage::OnProcessSendData( CPacket& packetBuf )
 		EnableWindow(GetDlgItem(ViewPage.m_hWnd, IDC_BPASS), FALSE);
 		//MessageBox(NULL, text("修改完了点确定"), text("有数据来了~~"), MB_OK);
 		HexEdit_SetReadOnly(ViewPage.m_hHexView, TRUE);//EnableWindow(ViewPage.m_hHexView, FALSE);//EnableWindow(GetDlgItem(ViewPage.m_hWnd,IDC_PACKETLST), TRUE);
-		HexEdit_CopyBuffer( ViewPage.m_hHexView, packetBuf.GetRawData(), packetBuf.GetDataLen() );
+		HexEdit_CopyBuffer( ViewPage.m_hHexView, packetBuf.GetRawBuffer(), packetBuf.GetBufferLen() );
 	}
 
 	LeaveCriticalSection( &ViewPage.m_csPacketListCriticalSection );
 
 }
 
-VOID CALLBACK CViewPage::OnProcessRecvData(CPacket& packetBuf)
+VOID CALLBACK CViewPage::OnProcessRecvData(CGPacket& packetBuf)
 {
-	EnterCriticalSection( &ViewPage.m_csPacketListCriticalSection );
+	//EnterCriticalSection( &ViewPage.m_csPacketListCriticalSection );
 
-	if (ViewPage.m_bEnbleGrab)
-	{
-		if (ViewPage.m_bShowRecv == FALSE)
-			packetBuf.SetSkipFlag(TRUE);
+	//if (ViewPage.m_bEnbleGrab)
+	//{
+	//	if (ViewPage.m_bShowRecv == FALSE)
+	//		packetBuf.SetSkipFlag(TRUE);
 
-		if ((packetBuf.IsSkipped() == TRUE /*&& ViewPage.m_bEnableFilter*/) ||
-			ViewPage.m_bEnbleGrab == FALSE)//skip掉或者没截包，则删除该包
-		{
-			delete &packetBuf;
-			LeaveCriticalSection(&ViewPage.m_csPacketListCriticalSection);
-			return;
-		}
+	//	if ((packetBuf.IsSkipped() == TRUE /*&& ViewPage.m_bEnableFilter*/) ||
+	//		ViewPage.m_bEnbleGrab == FALSE)//skip掉或者没截包，则删除该包
+	//	{
+	//		delete &packetBuf;
+	//		LeaveCriticalSection(&ViewPage.m_csPacketListCriticalSection);
+	//		return;
+	//	}
 
-		ShowPacket(ViewPage.m_hWnd, packetBuf);
-		if (ViewPage.m_bEnableBlock)
-		{
-			HexEdit_SetReadOnly(ViewPage.m_hHexView, FALSE);
-			WaitForSingleObject( ViewPage.m_hBlockEvent, INFINITE );
-			HexEdit_SetReadOnly(ViewPage.m_hHexView, TRUE);
-			HexEdit_CopyBuffer( ViewPage.m_hHexView, packetBuf.GetRawData(), packetBuf.GetDataLen() );
-		}
-	}
+	//	ShowPacket(ViewPage.m_hWnd, packetBuf);
+	//	if (ViewPage.m_bEnableBlock)
+	//	{
+	//		HexEdit_SetReadOnly(ViewPage.m_hHexView, FALSE);
+	//		WaitForSingleObject( ViewPage.m_hBlockEvent, INFINITE );
+	//		HexEdit_SetReadOnly(ViewPage.m_hHexView, TRUE);
+	//		HexEdit_CopyBuffer( ViewPage.m_hHexView, packetBuf.GetBuffer(), packetBuf.GetBufferLen() );
+	//	}
+	//}
 
-	LeaveCriticalSection( &ViewPage.m_csPacketListCriticalSection );
-}
-
-
-VOID CViewPage::ProcessPacket(CPacket& packetBuf)
-{
-	CPacketHelper *pFilter;
-	list<CPacketHelper*>::iterator itr;
-	EnterCriticalSection( &FilterSettingPage.m_csFilterListCritialSection );
-	
-	for (itr = FilterSettingPage.m_lstFilterList.begin(); itr != FilterSettingPage.m_lstFilterList.end();  ++itr)
-	{
-		if (ViewPage.m_bEnableReplace)
-		{
-			(*itr)->ReplacePacketData(packetBuf);
-		}
-		
-
-		if (ViewPage.m_bEnableFilter && (*itr)->IsPacketFiltered(packetBuf) )
-		{
-			packetBuf.SetSkipFlag(TRUE);
-			break;
-		}
-	}
-
-	LeaveCriticalSection( &FilterSettingPage.m_csFilterListCritialSection );
-	return;
+	//LeaveCriticalSection( &ViewPage.m_csPacketListCriticalSection );
 }
 
 BOOL CALLBACK CViewPage::EnumChildProc(HWND hwnd, LPARAM lParam)
