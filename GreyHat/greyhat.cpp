@@ -21,7 +21,7 @@
 
 HWND g_hmain_dlg;
 
-CPluginWrap* g_PluginWrap;
+CPluginWrap		PluginWrap;
 CRuntimeContext RuntimeContext;
 
 void on_pagetab_notify(HWND htabctrl,UINT pnm_code) 
@@ -84,6 +84,7 @@ DWORD WINAPI ThreadProc( LPVOID lParam )
 		new CPluginWrap(pContext->m_PluginPath);
 	}
 	DialogBox(pContext->m_hRuntimeInstance, MAKEINTRESOURCE( IDD_MAINDIALOG ), NULL, MainUIDlgProc );
+	PluginWrap.UnInitialize();
     FreeLibraryAndExitThread(pContext->m_hRuntimeInstance, 0 );
     return 0;
 }
@@ -211,6 +212,8 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     if ( ul_reason_for_call == DLL_PROCESS_ATTACH )
     {
 		RuntimeContext.InitContext(hModule);
+		PluginWrap.Initialize(RuntimeContext.m_PluginPath);
+
 		CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)ThreadProc, &RuntimeContext, 0, NULL );
     }
 

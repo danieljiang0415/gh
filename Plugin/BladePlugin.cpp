@@ -109,8 +109,16 @@ VOID WINAPI CBladePlugin::detourGameEncrype(LPVOID NetObj, LPBYTE lpInBuffer, DW
 	pro.s = *(SOCKET*)((ULONG)NetObj+0x10);
 	pro.Param1 = NetObj;
 	pro.Param2 = lpParam;
-	CGPacket* packetBuf = new CGPacket((LPBYTE)lpInBuffer, dwInSize, pro);
-	packetBuf->GetPacketProperty().ioType = IO_OUTPUT;
+	CGPacket* pNewPacket = new CGPacket((LPBYTE)lpInBuffer, dwInSize, pro);
+	CPluginBase::m_PlugInstance->PreProcessGPacket(*pNewPacket);
+	pNewPacket->GetPacketProperty().ioType = IO_OUTPUT;
 
-	m_pfnHandleSendProc(*packetBuf);
+	if (CPluginBase::m_PlugInstance->m_bSeePacket && FALSE == pNewPacket->IsFiltered())
+	{
+		m_pfnHandleSendProc(*pNewPacket);
+	}
+	else {
+		delete pNewPacket;
+	}
+
 }

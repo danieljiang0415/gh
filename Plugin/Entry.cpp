@@ -85,11 +85,11 @@ void APIENTRY AddFilter(CGPacketFilter& filter)
 		pPlugin->AddPacketFilter(filter);
 	}
 }
-void APIENTRY DeleteFilter(CGPacketFilter& filter)
+void APIENTRY DeleteFilter(Tstring& strFilterUUID)
 {
 	if (pPlugin)
 	{
-		pPlugin->DeletePacketFilter(filter);
+		pPlugin->DeletePacketFilter(strFilterUUID);
 	}
 }
 void APIENTRY ClearPacketFilters()
@@ -106,10 +106,10 @@ void APIENTRY EnableFilter(BOOL bEnable)
 		pPlugin->SetFilterEnable(bEnable);
 	}
 }
-void APIENTRY EnableReplace(BOOL bEnable)
+void APIENTRY EnableSeePacket(BOOL bEnable)
 {
 	if (pPlugin)
 	{
-		pPlugin->SetReplaceEnable(bEnable);
+		pPlugin->EnableCrabPacket(bEnable);
 	}
 }

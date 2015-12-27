@@ -28,7 +28,7 @@ protected:
 
 public:
 	void AddPacketFilter(CGPacketFilter&);
-	void DeletePacketFilter(CGPacketFilter&);
+	void DeletePacketFilter(Tstring&);
 	void ClearPacketFilters();
 	void SetFilterEnable(BOOL bEnable);
 	void SetReplaceEnable(BOOL bEnable);
@@ -41,5 +41,7 @@ public:
 	CRITICAL_SECTION				m_ListCritialSection;
 
 	static CPluginBase*				m_PlugInstance;
+	VOID EnableCrabPacket(BOOL bEnable);
+	BOOL m_bSeePacket;
 };
 

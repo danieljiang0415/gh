@@ -35,6 +35,7 @@ BOOL CGPacketFilterSettingPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lPara
 	LvInsertColumn(FilterSettingPage.m_hFilterList, _T("¹ýÂË×Ö¶Î"), 200, 1);
 	LvInsertColumn(FilterSettingPage.m_hFilterList, _T("Ìæ»»×Ö¶Î"), 200, 2);
 	LvInsertColumn(FilterSettingPage.m_hFilterList, _T("¸ß¼¶¹ýÂË"), 200, 3);
+	LvInsertColumn(FilterSettingPage.m_hFilterList, _T("UUID"),		300, 4);
 
 
 	EnableWindow(GetDlgItem(hwnd, IDC_BDEL), FALSE);
@@ -86,12 +87,10 @@ BOOL CGPacketFilterSettingPage::OnWmNotify(HWND hwnd, INT id, LPNMHDR pnm)
 
 		if (nSel != -1 /*&& id == IDC_LSTST*/)
 		{
-			CGPacketFilter* pFilter;
-			pFilter = (CGPacketFilter*)LvGetData(FilterSettingPage.m_hFilterList, nSel);
 
-			//SetText(FilterSettingPage.m_hKeyWord, pFilter->GetKeyWord().c_str());
-			//SetText(FilterSettingPage.m_hReplace, pFilter->GetReplaceData().c_str());
-			//SetText(FilterSettingPage.m_hAdvFilter, pFilter->GetAdvFilterStr().c_str());
+			SetText(FilterSettingPage.m_hKeyWord, LvGetItemText(FilterSettingPage.m_hFilterList, nSel, 1).c_str());
+			SetText(FilterSettingPage.m_hReplace, LvGetItemText(FilterSettingPage.m_hFilterList, nSel, 2).c_str());
+			SetText(FilterSettingPage.m_hAdvFilter, LvGetItemText(FilterSettingPage.m_hFilterList, nSel, 3).c_str());
 			SetDlgItemText(hwnd, IDC_BADD, _T("ÐÞ¸Ä"));
 			EnableWindow(GetDlgItem(hwnd, IDC_BDEL), TRUE);
 		}
@@ -123,57 +122,64 @@ CGPacketFilterSettingPage::~CGPacketFilterSettingPage()
 
 VOID CGPacketFilterSettingPage::OnButtonAdd()
 {
-	/*CGPacketFilter NewFilter;
+	CGPacketFilter NewFilter;
 
-	Tstring tstrKeyWord, tstrReplaceData, tstrAdvFilter;
+	Tstring strKeyWord, strReplaceData, strAdvanceKey;
 
-	tstrKeyWord = GetText(FilterSettingPage.m_hKeyWord);
-	tstrReplaceData = GetText(FilterSettingPage.m_hReplace);
-	tstrAdvFilter = GetText(FilterSettingPage.m_hAdvFilter);
+	strKeyWord = GetText(FilterSettingPage.m_hKeyWord);
+	strReplaceData = GetText(FilterSettingPage.m_hReplace);
+	strAdvanceKey = GetText(FilterSettingPage.m_hAdvFilter);
 
-	if (tstrKeyWord != _T("") || tstrReplaceData != _T("") || tstrAdvFilter != _T(""))
+	if ( strKeyWord != Tstring(_T("")) || strReplaceData != Tstring(_T("")) || strAdvanceKey != Tstring(_T("")) )
 	{
 		DWORD dwInsertItem;
 		TCHAR tcTemp[256];
 		int nSel = -1;
 		nSel = LvGetSelItemId(FilterSettingPage.m_hFilterList);
 		
+		Tstring strUUID;
+
 		if (nSel == -1)
 		{
 			dwInsertItem = LvGetItemCount(FilterSettingPage.m_hFilterList);
 			_stprintf(tcTemp, _T("%d"), dwInsertItem);
 			LvInsertItem(FilterSettingPage.m_hFilterList, tcTemp, dwInsertItem);
-			pFilter = new CGPacketFilter;
-			LvSetData(FilterSettingPage.m_hFilterList, dwInsertItem, pFilter);
 
+			strUUID = Utility::Msic::GenUUID();
+			LvSetText(FilterSettingPage.m_hFilterList, (LPTSTR)strUUID.c_str(), dwInsertItem, 4);
+			
 		}
 		else
 		{
 			dwInsertItem = nSel;
-			pFilter = (CGPacketFilter*)LvGetData(FilterSettingPage.m_hFilterList, nSel);
-			pFilter->Clear();
+			strUUID = LvGetItemText(FilterSettingPage.m_hFilterList, dwInsertItem, 4);
 		}
 
-		uint32_t keyword_len = 0, rpl_len = 0;
-		byte *keyword_hexbyte = null, *rpl_hexbyte = null;
+		NewFilter.m_strUUID = strUUID;
 
 
-		if (tstrKeyWord != _T(""))
+		if (strAdvanceKey != Tstring(_T("")))
 		{
-			LvSetText(FilterSettingPage.m_hFilterList, (LPTSTR)tstrKeyWord.c_str(), dwInsertItem, 1);
+			LvSetText(FilterSettingPage.m_hFilterList, (LPTSTR)strAdvanceKey.c_str(), dwInsertItem, 3);
+			NewFilter.m_strAdvanceKey = strAdvanceKey;
 		}
-
-		if (tstrReplaceData != _T(""))
+		else
 		{
-			LvSetText(FilterSettingPage.m_hFilterList, (LPTSTR)tstrReplaceData.c_str(), dwInsertItem, 2);
+			if (strKeyWord != Tstring(_T("")))
+			{
+				LvSetText(FilterSettingPage.m_hFilterList, (LPTSTR)strKeyWord.c_str(), dwInsertItem, 1);
+				NewFilter.m_strKey = strKeyWord;
+			}
+
+			if (strReplaceData != _T(""))
+			{
+				LvSetText(FilterSettingPage.m_hFilterList, (LPTSTR)strReplaceData.c_str(), dwInsertItem, 2);
+				NewFilter.m_strReplace = strReplaceData;
+			}
 		}
 
-		if (tstrAdvFilter != text(""))
-		{
-			LvSetText(FilterSettingPage.m_hFilterList, (LPTSTR)tstrAdvFilter.c_str(), dwInsertItem, 3);
-		}
-
-	}*/
+		PluginWrap.AddFilter(NewFilter);
+	}
 
 	SaveAllFilters();
 
@@ -181,32 +187,17 @@ VOID CGPacketFilterSettingPage::OnButtonAdd()
 
 VOID CGPacketFilterSettingPage::OnButtonDel()
 {
-	/*int nSel = -1;
+	int nSel = -1;
 
 	nSel = LvGetSelItemId(FilterSettingPage.m_hFilterList);
 
+	Tstring strUUID;
 	if (nSel != -1)
 	{
-		CGPacketFilter* pFilter;
-		pFilter = (CGPacketFilter*)LvGetData(FilterSettingPage.m_hFilterList, nSel);
-		if (pFilter)
-		{
-			list<CGPacketFilter*>::iterator itr;
-			for (itr = FilterSettingPage.m_lstFilterList.begin(); itr != FilterSettingPage.m_lstFilterList.end(); itr++)
-			{
-				if ((*itr) == pFilter)
-				{
-					EnterCriticalSection(&FilterSettingPage.m_csFilterListCritialSection);
-					FilterSettingPage.m_lstFilterList.erase(itr);
-					LeaveCriticalSection(&FilterSettingPage.m_csFilterListCritialSection);
-					break;
-				}
-			}
-			delete pFilter;
-		}
+		strUUID = LvGetItemText(FilterSettingPage.m_hFilterList, nSel, 4);
+		PluginWrap.DeleteFilter(strUUID);
 		LvDeleteItem(FilterSettingPage.m_hFilterList, nSel);
-		EnableWindow(GetDlgItem(FilterSettingPage.m_hMainPage, IDC_BDEL), FALSE);
-	}*/
+	}
 
 	SaveAllFilters();
 }
@@ -231,6 +222,9 @@ VOID CGPacketFilterSettingPage::SaveAllFilters()
 
 		_stprintf(tcTemp, _T("¸ß¼¶ÂË¾µ[%d]"), i);
 		Utility::IniAccess::SetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), tcTemp, LvGetItemText(FilterSettingPage.m_hFilterList, i, 3));
+
+		_stprintf(tcTemp, _T("UUID[%d]"), i);
+		Utility::IniAccess::SetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), tcTemp, LvGetItemText(FilterSettingPage.m_hFilterList, i, 4));
 	}
 }
 
@@ -241,45 +235,47 @@ VOID CGPacketFilterSettingPage::ReLoadAllFilters()
 
 	for (int i = 0; i<dwCount; i++)
 	{
-		CGPacketFilter* pFilter = new CGPacketFilter;
+		CGPacketFilter NewFilter;
 
-		TCHAR tcTemp[256];
-		Tstring tstrKeyWord, tstrReplaceData, tstrAdvFilter;
+		TCHAR szBuf[256];
+		Tstring strKeyWord, strReplaceData, strAdvanceKey, strUUID;
 
-		_stprintf( tcTemp, text("¹Ø¼ü×Ö[%d]"), i );
-		tstrKeyWord = Utility::IniAccess::GetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), tcTemp);
+		_stprintf(szBuf, text("¹Ø¼ü×Ö[%d]"), i );
+		strKeyWord = Utility::IniAccess::GetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), szBuf);
 
-		_stprintf( tcTemp, text("Ìæ»»Öµ[%d]"), i );
-		tstrReplaceData = Utility::IniAccess::GetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), tcTemp);
+		_stprintf(szBuf, text("Ìæ»»Öµ[%d]"), i );
+		strReplaceData = Utility::IniAccess::GetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), szBuf);
 
-		_stprintf( tcTemp, text("¸ß¼¶ÂË¾µ[%d]"), i );
-		tstrAdvFilter = Utility::IniAccess::GetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), tcTemp);
+		_stprintf(szBuf, text("¸ß¼¶ÂË¾µ[%d]"), i );
+		strAdvanceKey = Utility::IniAccess::GetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), szBuf);
+
+		_stprintf(szBuf, _T("UUID[%d]"), i);
+		strUUID = Utility::IniAccess::GetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), szBuf);
+
+		_stprintf(szBuf, _T("%d"), i );
+		LvInsertItem(FilterSettingPage.m_hFilterList, szBuf, i );
 
 
-
-		_stprintf( tcTemp, _T("%d"), i );
-		/*LvInsertItem(FilterSettingPage.m_hFilterList, tcTemp, i );
-		LvSetData( FilterSettingPage.m_hFilterList, i, pFilter );
-
-		if (tstrKeyWord != _T(""))
+		if (strKeyWord != _T(""))
 		{
-			pFilter->SetKeyWord(tstrKeyWord);
-			LvSetText( FilterSettingPage.m_hFilterList,(LPTSTR)tstrKeyWord.c_str(), i, 1 );
+			NewFilter.m_strKey = strKeyWord;
+			LvSetText( FilterSettingPage.m_hFilterList,(LPTSTR)strKeyWord.c_str(), i, 1 );
 		}
-		if (tstrReplaceData != _T(""))
+		if (strReplaceData != _T(""))
 		{
-			pFilter->SetReplaceData(tstrReplaceData);
-			LvSetText( FilterSettingPage.m_hFilterList,(LPTSTR)tstrReplaceData.c_str(), i, 2 );
-		}
-
-		if (tstrAdvFilter != _T(""))
-		{
-			pFilter->SetAdvFilterStr(tstrAdvFilter);
-			LvSetText( FilterSettingPage.m_hFilterList,(LPTSTR)tstrAdvFilter.c_str(), i, 3 );
+			NewFilter.m_strReplace = strReplaceData;
+			LvSetText( FilterSettingPage.m_hFilterList,(LPTSTR)strReplaceData.c_str(), i, 2 );
 		}
 
-		EnterCriticalSection(&FilterSettingPage.m_csFilterListCritialSection);
-		FilterSettingPage.m_lstFilterList.push_back(pFilter);
-		LeaveCriticalSection(&FilterSettingPage.m_csFilterListCritialSection);*/
+		if (strAdvanceKey != _T(""))
+		{
+			NewFilter.m_strAdvanceKey = strAdvanceKey;
+			LvSetText( FilterSettingPage.m_hFilterList,(LPTSTR)strAdvanceKey.c_str(), i, 3 );
+		}
+
+		NewFilter.m_strUUID = strUUID;
+		LvSetText(FilterSettingPage.m_hFilterList, (LPTSTR)strUUID.c_str(), i, 4);
+
+		PluginWrap.AddFilter(NewFilter);
 	}
 }

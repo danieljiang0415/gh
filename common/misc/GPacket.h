@@ -67,23 +67,15 @@ private:
 	BOOL m_bFiltered;
 };
 
-enum PROCESS_TYPE
-{
-	PROCESS_FILTER, 
-	PROCESS_REPLACE,
-	PROCESS_UNDEFINE
-};
-
 class CGPacketFilter
 {
 public:
 	CGPacketFilter()
 	{
 		m_strKey		=	_T("");
-		m_strReplace	=	_T("");;
-		m_strAdvanceKey =	_T("");;
-		m_ProcessType	=	PROCESS_UNDEFINE;;
-		m_strUUID = Utility::Msic::GenUUID();
+		m_strReplace	=	_T("");
+		m_strAdvanceKey =	_T("");
+		m_strUUID		=	_T("");
 	};
 
 	~CGPacketFilter()
@@ -95,7 +87,7 @@ public:
 		m_strAdvanceKey = processor.m_strAdvanceKey;
 		m_strKey = processor.m_strKey;
 		m_strReplace = processor.m_strReplace;
-		m_strUUID = Utility::Msic::GenUUID();
+		m_strUUID = processor.m_strUUID;
 	};
 
 public:
@@ -103,5 +95,4 @@ public:
 	Tstring m_strReplace;
 	Tstring m_strAdvanceKey;
 	Tstring m_strUUID;
-	PROCESS_TYPE m_ProcessType;
 };

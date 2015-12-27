@@ -7,4 +7,4 @@ EXPORTS
 	AddFilter
 	DeleteFilter
 	EnableFilter
-	EnableReplace
+	EnableSeePacket

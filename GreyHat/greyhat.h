@@ -64,3 +64,4 @@ HBRUSH OnCtrlColor( HWND hwnd, HDC hdc, HWND hwndChild, int type );
 
 extern HWND g_hmain_dlg;
 extern CRuntimeContext RuntimeContext;
+extern CPluginWrap PluginWrap;

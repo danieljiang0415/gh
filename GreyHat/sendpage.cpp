@@ -322,7 +322,7 @@ VOID CSendPage:: OnButtonSend(DWORD dwButtonId)
 			CGPacket* pNewPacket = new CGPacket(lpHexBuf, dwLen, pPacket->GetPacketProperty());
 			if (pNewPacket)
 			{
-//				CCoreLib::SendData( *pNewPacket);
+				PluginWrap.SendData( *pNewPacket);
 				delete pNewPacket;
 			}
 			delete[]lpHexBuf;

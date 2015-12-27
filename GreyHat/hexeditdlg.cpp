@@ -67,7 +67,7 @@ DWORD WINAPI ThrdStepProc( LPVOID lpThreadParameter )
 		CGPacket *packetBuf = new CGPacket((LPBYTE)pBuf, pHexEditDlg->m_uDataSize, pro);//(CGPacket*)pHexEditDlg->GetUserData();
 		if (packetBuf)
 		{
-			//CCoreLib::SendData(*packetBuf);
+			PluginWrap.SendData(*packetBuf);
 			delete packetBuf;
 		}
 		

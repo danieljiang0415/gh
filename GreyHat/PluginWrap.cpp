@@ -94,3 +94,27 @@ CPluginWrap* CPluginWrap::GetPluginWrap()
 	//}
 	return NULL;
 }
+
+
+VOID CPluginWrap::Initialize(Tstring& strPluginPath)
+{
+	m_strPluginDllPath = strPluginPath;
+	m_hPluginDllInstance = LoadLibrary(strPluginPath.c_str());
+}
+
+
+VOID CPluginWrap::EnableSeePacket(bool bEnable)
+{
+	VOID(APIENTRY* EnableSeePacket)(BOOL) = (VOID(APIENTRY*)(BOOL))GetProcAddress(m_hPluginDllInstance, "EnableSeePacket");
+	if (EnableSeePacket)
+	{
+		EnableSeePacket(bEnable);
+	}
+}
+
+
+VOID CPluginWrap::UnInitialize()
+{
+	FreeLibrary(m_hPluginDllInstance);
+	return VOID();
+}

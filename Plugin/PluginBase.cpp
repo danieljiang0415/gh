@@ -7,6 +7,7 @@ RECVPROCHANDLER CPluginBase::m_pfnHandleRecvProc;
 CPluginBase*	CPluginBase::m_PlugInstance;
 
 CPluginBase::CPluginBase()
+	: m_bSeePacket(TRUE)
 {
 	m_pfnSendInterface = NULL;
 	m_pfnRecvInterface = NULL;
@@ -40,19 +41,33 @@ void CPluginBase::ClearPacketFilters()
 
 void CPluginBase::AddPacketFilter(CGPacketFilter& processor)
 {
-	CGPacketFilter *pNewProcessor = new CGPacketFilter(processor);
 	EnterCriticalSection(&m_ListCritialSection);
+	list<CGPacketFilter*>::iterator i;
+	for (i = m_PacketProcessorList.begin(); i != m_PacketProcessorList.end(); i++)
+	{
+		CGPacketFilter *pFilter =  *i;
+		if (pFilter->m_strUUID == processor.m_strUUID)
+		{
+			pFilter->m_strAdvanceKey = processor.m_strAdvanceKey;
+			pFilter->m_strKey = processor.m_strKey;
+			pFilter->m_strReplace = processor.m_strReplace;
+			LeaveCriticalSection(&m_ListCritialSection);
+			return;
+		}
+	}
+
+	CGPacketFilter *pNewProcessor = new CGPacketFilter(processor);
 	m_PacketProcessorList.push_back(pNewProcessor);
 	LeaveCriticalSection(&m_ListCritialSection);
 }
 
-void CPluginBase::DeletePacketFilter(CGPacketFilter& processor)
+void CPluginBase::DeletePacketFilter(Tstring& strFilterUUID)
 {
 	EnterCriticalSection(&m_ListCritialSection);
 	list<CGPacketFilter*>::iterator i;
 	for (i = m_PacketProcessorList.begin(); i != m_PacketProcessorList.end(); i++)
 	{
-		if (processor.m_strUUID == (*i)->m_strUUID) 
+		if (strFilterUUID == (*i)->m_strUUID)
 		{
 			delete *i;
 			m_PacketProcessorList.erase(i);
@@ -73,20 +88,42 @@ void CPluginBase::SetReplaceEnable(BOOL bEnable)
 void CPluginBase::PreProcessGPacket(CGPacket&packet)
 {
 	EnterCriticalSection(&m_ListCritialSection);
+
 	list<CGPacketFilter*>::iterator i;
 	for (i = m_PacketProcessorList.begin(); i != m_PacketProcessorList.end(); i++)
 	{
 		CGPacketFilter* p = *i;
-		if (m_bFileterFunEnable && p->m_ProcessType == PROCESS_FILTER)
-		{
-			if (packet.Find(p->m_strKey) || packet.AdvancedMach(p->m_strAdvanceKey))
-				packet.SetFiltered();
-		}
-		if (m_bReplaceFunEnable&& p->m_ProcessType == PROCESS_REPLACE)
+		if (p->m_strReplace != Tstring(_T("")))
 		{
 			packet.Replace(p->m_strKey, p->m_strReplace);
 		}
+		if (m_bFileterFunEnable)
+		{
+			if (p->m_strKey != Tstring(_T(""))) 
+			{
+				if (packet.Find(p->m_strKey))
+				{
+					packet.SetFiltered();
+				}
+			}
+			if (p->m_strAdvanceKey != Tstring(_T("")))
+			{
+				if (packet.AdvancedMach(p->m_strAdvanceKey))
+				{
+					packet.SetFiltered();
+				}
+
+			}
+
+		}
+
 	}
 
 	LeaveCriticalSection(&m_ListCritialSection);
+}
+
+VOID CPluginBase::EnableCrabPacket(BOOL bEnable)
+{
+	m_bSeePacket = bEnable;
+	return VOID();
 }

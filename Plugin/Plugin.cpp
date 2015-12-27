@@ -71,19 +71,17 @@ VOID __declspec(naked) CPlugin::WSASend12Thunk()
 VOID APIENTRY CPlugin::SendStub(SOCKET s, const char* buf, int nlen)
 {
 	if (nlen > 0) {
-		//CProperty pro;
-		//pro.s = s;
-		//CGPacket* packetBuf = new CGPacket((LPBYTE)buf, nlen, pro);
-		//packetBuf->SetType(IO_SEND);
-		//m_pfnHandleSendProc(*packetBuf);
 		CProperty pro;
 		pro.s = s;
 		pro.ioType = IO_OUTPUT;
 		CGPacket *pNewPacket = new CGPacket((LPBYTE)buf, nlen, pro);
 		CPluginBase::m_PlugInstance->PreProcessGPacket(*pNewPacket);
-		if (FALSE == pNewPacket->IsFiltered())
+		if (CPluginBase::m_PlugInstance->m_bSeePacket && FALSE == pNewPacket->IsFiltered())
 		{
 			m_pfnHandleSendProc(*pNewPacket);
+		}
+		else {
+			delete pNewPacket;
 		}
 
 	}

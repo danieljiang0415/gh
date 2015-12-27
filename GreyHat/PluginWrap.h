@@ -25,5 +25,9 @@ public:
 private:
 	HMODULE m_hPluginDllInstance;
 	Tstring m_strPluginDllPath;
+public:
+	VOID Initialize(Tstring&);
+	VOID EnableSeePacket(bool bEnable);
+	VOID UnInitialize();
 };
 

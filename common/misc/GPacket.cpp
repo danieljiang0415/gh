@@ -23,11 +23,13 @@ CGPacket::~CGPacket()
 CGPacket::CGPacket(LPBYTE lpData, DWORD dwLen, CProperty& Property)
 {
 	if (lpData == NULL || dwLen == 0)return;
+
 	m_pBuf = new BYTE[dwLen];
 	memcpy(m_pBuf, lpData, dwLen);
 	m_dwSize = dwLen;
 	m_property = Property;
 	m_pRawBuf = lpData;
+	m_bFiltered = FALSE;
 	if (Property.s != INVALID_SOCKET)
 	{
 		sockaddr_in sin;
@@ -179,7 +181,7 @@ BOOL CGPacket::AdvancedMach(Tstring& str)
 {
 	std::map<Tstring, Tstring> matchmap;
 	int splitpos = 0, pos = 0;
-	while (pos < str.length())
+	while (TRUE)
 	{
 		splitpos = str.find(_T('|'), pos);
 
@@ -200,6 +202,8 @@ BOOL CGPacket::AdvancedMach(Tstring& str)
 			value = strSub.substr(assignpos+1);
 			matchmap[key] = value;
 		}
+		if (splitpos == Tstring::npos)
+			break;
 		pos = splitpos + 1;
 	}
 		

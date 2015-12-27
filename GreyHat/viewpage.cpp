@@ -139,15 +139,14 @@ BOOL CViewPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 	ViewPage.m_hBlockEvent = CreateEvent( NULL, FALSE, FALSE, NULL );
 	InitializeCriticalSection( &ViewPage.m_csPacketListCriticalSection );
 
-//	if (FALSE == ViewPage.m_CoreLib.InstallPlugin(&OnProcessSendData, &OnProcessRecvData))
-//		MessageBox(NULL, TEXT("°²×°¹³×ÓÊ§°Ü£¡"), TEXT("´íÎó"), MB_OK);
+	if (FALSE == PluginWrap.InstallPlugin(&OnProcessSendData, &OnProcessRecvData))
+		MessageBox(NULL, TEXT("°²×°PluginÊ§°Ü£¡"), TEXT("´íÎó"), MB_OK);
 
-	//CPluginBase gameBox = new CPlugin;
 
-	ViewPage.m_bEnbleGrab		= TRUE;
+	PluginWrap.EnableSeePacket(TRUE);
+	PluginWrap.EnableFilter(TRUE);
+
 	ViewPage.m_bEnableScroll	= TRUE;
-	ViewPage.m_bEnableFilter	= TRUE;
-	ViewPage.m_bEnableReplace	= TRUE;
 	ViewPage.m_bShowSend		= TRUE;
 	ViewPage.m_bAutoShowContent = TRUE;
 
@@ -207,8 +206,8 @@ VOID CViewPage::OnWmCommand( HWND hWnd, int id, HWND hWndCtl, UINT codeNotify )
 	{
 	//case IDC_ENABLE_LOG:    	g_enable_log =  IsButtonChecked(hWndCtl) ; if (g_enable_log)	MessageBox(hWnd, text("¸Ã¹¦ÄÜÉÐÎ´¿ª·¢"), text("!!"), MB_OK); break;
 	case IDC_ATO_SCROLL:		ViewPage.m_bEnableScroll =  IsButtonChecked(hWndCtl) ;	break;
-	case IDC_ENABLE_FILTER:		ViewPage.m_bEnableFilter =  IsButtonChecked(hWndCtl) ;	break;
-	case IDC_ENABLE_REPLACE:    ViewPage.m_bEnableReplace =  IsButtonChecked(hWndCtl) ;	break;
+	case IDC_ENABLE_FILTER:		PluginWrap.EnableFilter( IsButtonChecked(hWndCtl)) ;	break;
+	//case IDC_ENABLE_REPLACE:    ViewPage.m_bEnableReplace =  IsButtonChecked(hWndCtl) ;	break;
 	case IDC_SHOWSEND:			ViewPage.m_bShowSend = IsButtonChecked(hWndCtl);	break;
 	case IDC_SHOWRECV:			ViewPage.m_bShowRecv = IsButtonChecked(hWndCtl);	break;
 	case IDC_AUTOSHOWCONTENT:	ViewPage.m_bAutoShowContent = IsButtonChecked(hWndCtl);	break;
@@ -227,26 +226,8 @@ VOID CViewPage::OnWmCommand( HWND hWnd, int id, HWND hWndCtl, UINT codeNotify )
 			ShowWindow(FilterSettingPage.m_hMainPage, SW_SHOW);
 		}
 		break;
-	case IDC_CSTPF:	ViewPage.m_bEnbleGrab = !IsButtonChecked(hWndCtl); break;
-	case IDC_BTN_START:
-	{
-		//static BOOL bStatus = FALSE;
-		//if ( !bStatus )
-		//{
-		//	if (FALSE == ViewPage.m_CoreLib.InstallPlugin(&OnProcessSendData, &OnProcessRecvData))
-		//		MessageBox(NULL, TEXT("°²×°²å¼þÊ§°Ü£¡"), TEXT("´íÎó"), MB_OK);
-		//	SetWindowText(GetDlgItem(ViewPage.m_hWnd, IDC_BTN_START), _T("Í£Ö¹"));
-		//}
-		//else
-		//{
-		//	if (FALSE == ViewPage.m_CoreLib.UnInstallPlugin())
-		//		MessageBox(NULL, TEXT("Ð¶ÔØ²å¼þÊ§°Ü£¡"), TEXT("´íÎó"), MB_OK);
-		//	SetWindowText(GetDlgItem(ViewPage.m_hWnd, IDC_BTN_START), _T("¿ªÊ¼"));
-		//}
+	case IDC_CSTPF:	PluginWrap.EnableSeePacket( !IsButtonChecked(hWndCtl) ); break;
 
-		//bStatus = !bStatus;
-	}
-	break;
 	case IDC_BPASS:				SetEvent(ViewPage.m_hBlockEvent);break;
 	case IDC_BFONT:				
 		{
@@ -415,7 +396,8 @@ VOID CViewPage::OnWmClose(HWND hwnd)
 	FreePackets();
 	UnregisterHexEditorClass( RuntimeContext.m_hRuntimeInstance );
 	DestroyMenu( ViewPage.m_hMenu );
-
+	if (FALSE == PluginWrap.UnInstallPlugin())
+		MessageBox(NULL, TEXT("Ð¶ÔØPluginÊ§°Ü£¡"), TEXT("´íÎó"), MB_OK);
 	DeleteCriticalSection(&ViewPage.m_csPacketListCriticalSection); 
 }
 
