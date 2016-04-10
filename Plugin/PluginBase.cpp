@@ -71,6 +71,7 @@ void CPluginBase::DeletePacketFilter(Tstring& strFilterUUID)
 		{
 			delete *i;
 			m_PacketProcessorList.erase(i);
+			break;
 		}
 	}
 	LeaveCriticalSection(&m_ListCritialSection);

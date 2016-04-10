@@ -66,6 +66,7 @@ VOID CGPacketFilterSettingPage::OnButtonClear()
 	dwLvCount = LvGetItemCount(FilterSettingPage.m_hFilterList);
 	for (int i = 0; i < dwLvCount; i++) {
 		pFilter = (CGPacketFilter*)LvGetData(FilterSettingPage.m_hFilterList, i);
+		PluginWrap.DeleteFilter(pFilter->m_strUUID);
 		delete pFilter;
 	}
 
