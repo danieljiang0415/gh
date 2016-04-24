@@ -74,12 +74,12 @@ DWORD WINAPI ThreadProc( LPVOID lParam )
 {
 	CRuntimeContext *pContext = (CRuntimeContext *)lParam;
 
-	if (!Utility::File::IsFileExist(pContext->m_PluginPath.c_str()))
+	//if (!Utility::File::IsFileExist(pContext->m_PluginPath.c_str()))
 	{
-		MessageBox(NULL, _T("找不到核心工作模块！"), TEXT("错误"), MB_OK);
-		return -1;
+	//	MessageBox(NULL, _T("找不到核心工作模块！"), TEXT("错误"), MB_OK);
+	//	return -1;
 	}
-	else
+	//else
 	{
 		new CPluginWrap(pContext->m_PluginPath);
 	}

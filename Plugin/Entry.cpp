@@ -13,18 +13,18 @@
 #endif
 
 #define CONFIG_FILE _T("config.ini")
-#define GAME_SECTION _T("GAME")
-#define GAME_VALUE _T("NAME")
+#define SHELLCODE_SECTION _T("SHELLCODE")
+#define SHELLCODE_VALUE _T("SHELLCODE")
 
 
 CPluginBase* pPlugin;
-HMODULE g_hInstance;
+HMODULE G_DLLModule;
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
 					 )
 {
-	g_hInstance = hModule;
+	G_DLLModule = hModule;
     return TRUE;
 }
 
@@ -35,21 +35,21 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 BOOL APIENTRY Install(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc)
 {
-	Tstring strDllPath = Utility::Module::GetModulePath(g_hInstance);
+	//Tstring strDllPath = Utility::Module::GetModulePath(G_DLLModule);
 
-	Tstring strCfgFile = strDllPath + Tstring(_T("\\")) + Tstring(CONFIG_FILE);
+	//Tstring strCfgFile = strDllPath + Tstring(_T("\\")) + Tstring(CONFIG_FILE);
 
-	Tstring strGameName = Utility::IniAccess::GetPrivateKeyValString(strCfgFile, GAME_SECTION, GAME_VALUE);
-	Utility::Log::DbgPrint(_T("game=[%s]"), strGameName.c_str());
-	if (strGameName == Tstring(_T("BSTW"))) {
-		pPlugin = new CBladePlugin;
-		Utility::Log::DbgPrint(_T("new CBladePlugin"));
+	//Tstring strShellCOde = Utility::IniAccess::GetPrivateKeyValString(strCfgFile, SHELLCODE_SECTION, SHELLCODE_VALUE);
+	//Utility::Log::DbgPrint(_T("game=[%s]"), strGameName.c_str());
+	//if (strGameName == Tstring(_T("BSTW"))) {
+	//	pPlugin = new CBladePlugin;
+	//	Utility::Log::DbgPrint(_T("new CBladePlugin"));
 
-	}
-	else {
-		pPlugin = new CPlugin;
-		Utility::Log::DbgPrint(_T("new CPlugin"));
-	}
+	//}
+	//else {
+		pPlugin = new CDOMPlugin;
+	//	Utility::Log::DbgPrint(_T("new CPlugin"));
+	//}
 	
 	if (pPlugin)
 		return pPlugin->InstallPlugin(pfnHandleInputProc, pfnHandleOutputProc);
