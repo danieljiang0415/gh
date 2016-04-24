@@ -36,6 +36,9 @@
     <ClInclude Include="Mem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nativedef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -47,5 +50,10 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="export.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

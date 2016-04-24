@@ -25,7 +25,7 @@ typedef struct _HIDE_DLL_ENTRY
 }HIDE_DLL_ENTRY, *PHIDE_DLL_ENTRY;
 
 
-PHIDE_DLL_ENTRY HideLinkHeader = NULL;
+LIST_ENTRY HideLinkHeader;
 
 void LOG(LPCTSTR lpszFormat, ...)
 {
@@ -46,6 +46,12 @@ void LOG(LPCTSTR lpszFormat, ...)
 	va_end(args);
 }
 
+VOID HideDll(HMODULE hModule)
+{
+	PHIDE_DLL_ENTRY pEntry = new HIDE_DLL_ENTRY;
+	pEntry->ModuleBaseAddress = (ULONG)hModule;
+	InsertTailList(&HideLinkHeader, (PLIST_ENTRY)pEntry);
+}
 
 LPVOID __declspec(naked) CurrentPEB()
 {
@@ -110,6 +116,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
+		InitializeListHead(&HideLinkHeader);
 		G_hModule = hModule;
 		
 		CreateThread(NULL, 0, ThreadHide, hModule, 0, NULL);
