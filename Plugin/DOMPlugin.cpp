@@ -93,6 +93,7 @@ BOOL CDOMPlugin::PatchUserDefineAddr()
 
 	DetourAttach(&(PVOID&)pShellCodeBlock->HookAddr, (PVOID)pShellCodeBlock->ShellCode);
 	//
+	//__asm int 3;
 	DetourTransactionCommit();
 	return TRUE;
 }

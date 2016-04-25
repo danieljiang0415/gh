@@ -1,3 +1,5 @@
-LIBRARY
-HideDllFromLdrTable @1
-HideDllForX3 @2
+LIBRARY HideDll
+
+EXPORTS
+		AddDll @1
+		Hide @2

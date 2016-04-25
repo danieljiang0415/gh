@@ -16,12 +16,13 @@
 HMODULE G_hModule;
 
 VOID HideDllForX3();
+VOID HideDllFromLdrTable();
 
 typedef struct _HIDE_DLL_ENTRY
 {
 	LIST_ENTRY HideLinks;
-	ULONG ModuleBaseAddress;
-	ULONG ModuleSize;
+	PVOID ImageBase;
+	ULONG SizeOfImage;
 }HIDE_DLL_ENTRY, *PHIDE_DLL_ENTRY;
 
 
@@ -46,11 +47,39 @@ void LOG(LPCTSTR lpszFormat, ...)
 	va_end(args);
 }
 
-VOID HideDll(HMODULE hModule)
+DWORD GetSizeOfImage(HMODULE hModuleBase)
+{
+	DWORD dwSizeOfImage = 0;
+	PIMAGE_DOS_HEADER ImageDosHeaders;
+	PIMAGE_NT_HEADERS ImageNtHeaders;
+
+	//	验证模块是否是PE文件
+	if (hModuleBase == NULL)
+		return dwSizeOfImage;
+
+	ImageDosHeaders = (PIMAGE_DOS_HEADER)hModuleBase;
+
+	if (ImageDosHeaders->e_magic == IMAGE_DOS_SIGNATURE) {
+		ImageNtHeaders = (PIMAGE_NT_HEADERS)((DWORD)hModuleBase + ImageDosHeaders->e_lfanew);
+		if (ImageNtHeaders->Signature == IMAGE_NT_SIGNATURE) {
+			dwSizeOfImage = ImageNtHeaders->OptionalHeader.SizeOfImage;
+		}
+	}
+	return dwSizeOfImage;
+}
+
+VOID WINAPI AddDll(HMODULE hModule)
 {
 	PHIDE_DLL_ENTRY pEntry = new HIDE_DLL_ENTRY;
-	pEntry->ModuleBaseAddress = (ULONG)hModule;
+	pEntry->ImageBase = hModule;
+	pEntry->SizeOfImage = GetSizeOfImage(hModule);
 	InsertTailList(&HideLinkHeader, (PLIST_ENTRY)pEntry);
+}
+
+VOID WINAPI Hide()
+{
+	HideDllFromLdrTable();
+	HideDllForX3();
 }
 
 LPVOID __declspec(naked) CurrentPEB()
@@ -62,9 +91,9 @@ LPVOID __declspec(naked) CurrentPEB()
 		ret
 	}
 }
-VOID HideDllFromLdrTable( HMODULE hModule)
+VOID HideDllFromLdrTable()
 {
-	LOG(TEXT("HideDllFromLdrTable ------>%08lx"), hModule);
+	//LOG(TEXT("HideDllFromLdrTable ------>%08lx"), hModule);
 	LPVOID Peb = CurrentPEB();
 	PPEB_LDR_DATA Ldr = *(PPEB_LDR_DATA*)((ULONG)Peb + 0x0c);
 	LOG(TEXT("peb[%08lx]---ldr[%08lx]"), Peb, Ldr);
@@ -73,19 +102,28 @@ VOID HideDllFromLdrTable( HMODULE hModule)
 	while (LdrDataTable != LdrDataTableHead)
 	{
 		LOG(TEXT("ldrtable--%08lx----%08lx-->%s"),  LdrDataTable->DllBase, LdrDataTable->SizeOfImage, LdrDataTable->FullDllName.Buffer);
-		//判断是否是我们要屏蔽的模块
-		if (LdrDataTable->DllBase == hModule)
+
+		PLIST_ENTRY HideEntryNext = HideLinkHeader.Flink;
+		while (HideEntryNext != &HideLinkHeader)
 		{
-			LOG(TEXT("ldrtable--X--links"));
-			LdrDataTable->InLoadOrderLinks.Flink->Blink = LdrDataTable->InLoadOrderLinks.Blink;
-			LdrDataTable->InLoadOrderLinks.Blink->Flink = LdrDataTable->InLoadOrderLinks.Flink;
+			//判断是否是我们要屏蔽的模块
+			PHIDE_DLL_ENTRY Entry = (PHIDE_DLL_ENTRY)HideEntryNext;
+			if (LdrDataTable->DllBase == Entry->ImageBase)
+			{
+				LOG(TEXT("ldrtable--X--links"));
+				LdrDataTable->InLoadOrderLinks.Flink->Blink = LdrDataTable->InLoadOrderLinks.Blink;
+				LdrDataTable->InLoadOrderLinks.Blink->Flink = LdrDataTable->InLoadOrderLinks.Flink;
 
-			LdrDataTable->InMemoryOrderLinks.Flink->Blink = LdrDataTable->InMemoryOrderLinks.Blink;
-			LdrDataTable->InMemoryOrderLinks.Blink->Flink = LdrDataTable->InMemoryOrderLinks.Flink;
+				LdrDataTable->InMemoryOrderLinks.Flink->Blink = LdrDataTable->InMemoryOrderLinks.Blink;
+				LdrDataTable->InMemoryOrderLinks.Blink->Flink = LdrDataTable->InMemoryOrderLinks.Flink;
 
-			LdrDataTable->InInitializationOrderLinks.Flink->Blink = LdrDataTable->InInitializationOrderLinks.Blink;
-			LdrDataTable->InInitializationOrderLinks.Blink->Flink = LdrDataTable->InInitializationOrderLinks.Flink;
+				LdrDataTable->InInitializationOrderLinks.Flink->Blink = LdrDataTable->InInitializationOrderLinks.Blink;
+				LdrDataTable->InInitializationOrderLinks.Blink->Flink = LdrDataTable->InInitializationOrderLinks.Flink;
+			}
+
+			HideEntryNext = HideEntryNext->Flink;
 		}
+
 
 		//移动到链表的下一个
 		LdrDataTable = (PLDR_DATA_TABLE_ENTRY)LdrDataTable->InLoadOrderLinks.Flink;
@@ -95,17 +133,17 @@ VOID HideDllFromLdrTable( HMODULE hModule)
 
 
 
-DWORD WINAPI ThreadHide(LPVOID lpParam)
-{
-	HMODULE hModule = (HMODULE)lpParam;
-	HideDllFromLdrTable( hModule );
-
-	LOG(TEXT("fix x3"));
-	HideDllForX3();
-
-	return 0;
-
-}
+//DWORD WINAPI ThreadHide(LPVOID lpParam)
+//{
+//	HMODULE hModule = (HMODULE)lpParam;
+//	HideDllFromLdrTable( hModule );
+//
+//	LOG(TEXT("fix x3"));
+//	HideDllForX3();
+//
+//	return 0;
+//
+//}
 
 
 BOOL APIENTRY DllMain( HMODULE hModule,
@@ -116,10 +154,16 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
+	{
 		InitializeListHead(&HideLinkHeader);
 		G_hModule = hModule;
-		
-		CreateThread(NULL, 0, ThreadHide, hModule, 0, NULL);
+		//PHIDE_DLL_ENTRY SelfEntry = new HIDE_DLL_ENTRY;
+		//SelfEntry->ImageBase = hModule;
+		//SelfEntry->SizeOfImage = GetSizeOfImage(hModule);
+		//InsertTailList(&HideLinkHeader, (PLIST_ENTRY)SelfEntry);
+		AddDll(hModule);
+		Hide();
+	}
 		break;
 	case DLL_THREAD_ATTACH:
 	case DLL_THREAD_DETACH:
@@ -165,18 +209,28 @@ NTSTATUS WINAPI MyNtQueryVirtualMemory(
 	//	}
 	//	break;
 	//}
-
-	
-	if (BaseAddress == G_hModule && MemoryInformationClass == MemoryBasicInformation)
+	PLIST_ENTRY HideEntryNext = HideLinkHeader.Flink;
+	while (HideEntryNext != &HideLinkHeader)
 	{
-		PMEMORY_BASIC_INFORMATION pMemInfo = (PMEMORY_BASIC_INFORMATION)MemoryInformation;
-		pMemInfo->State = MEM_FREE;
-		pMemInfo->Type = 0;
-		pMemInfo->Protect = PAGE_NOACCESS;
-		pMemInfo->AllocationProtect = PAGE_NOACCESS;
+		PHIDE_DLL_ENTRY Entry = (PHIDE_DLL_ENTRY)HideEntryNext;
 
-		LOG(TEXT("ntquery--hak--"));
+		if ( BaseAddress == Entry->ImageBase &&
+			 MemoryInformationClass == MemoryBasicInformation)
+		{
+			PMEMORY_BASIC_INFORMATION pMemInfo = (PMEMORY_BASIC_INFORMATION)MemoryInformation;
+			pMemInfo->State = MEM_FREE;
+			pMemInfo->Type = 0;
+			pMemInfo->Protect = PAGE_NOACCESS;
+			pMemInfo->AllocationProtect = PAGE_NOACCESS;
+
+
+			LOG(TEXT("--%08lx--%08lx--%08lx--%08lx--%08lx--%08lx"), BaseAddress, pMemInfo->AllocationBase, pMemInfo->Protect, pMemInfo->RegionSize, pMemInfo->State, pMemInfo->Type);
+		}
+
+		HideEntryNext = HideEntryNext->Flink;
 	}
+	
+
 	return status;
 }
 
@@ -232,14 +286,17 @@ retry:
 		ULONG  CRC;
 	};
 
-	CODE_CHECKER *p = (CODE_CHECKER*)((ULONG)pdwCRCVirtualAddress - 16);
-	dwCRC = 0;
-	for (int i = 0; i < p->CodeSize / 4; i++)
-	{
-		dwCRC += ((DWORD*)p->CodeBase)[i];
-	}
-	dwCRC = ~dwCRC;
-	LOG(TEXT("---new CRC--[%08lx]"), dwCRC);
 	if (pdwCRCVirtualAddress)
-		*pdwCRCVirtualAddress = dwCRC;
+	{
+		CODE_CHECKER *p = (CODE_CHECKER*)((ULONG)pdwCRCVirtualAddress - 16);
+		dwCRC = 0;
+		for (int i = 0; i < p->CodeSize / 4; i++)
+		{
+			dwCRC += ((DWORD*)p->CodeBase)[i];
+		}
+		dwCRC = ~dwCRC;
+		LOG(TEXT("---new CRC--[%08lx]"), dwCRC);
+		if (pdwCRCVirtualAddress)
+			*pdwCRCVirtualAddress = dwCRC;
+	}
 }

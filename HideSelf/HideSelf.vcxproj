@@ -127,6 +127,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\common\detours\libx86</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>export.def</ModuleDefinitionFile>
+      <OutputFile>$(SolutionDir)\bin\$(ProjectName).dll</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

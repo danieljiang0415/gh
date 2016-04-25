@@ -24,6 +24,17 @@ BOOL APIENTRY DllMain( HMODULE hModule,
                        LPVOID lpReserved
 					 )
 {
+	switch (ul_reason_for_call)
+	{
+	case DLL_PROCESS_ATTACH:
+		{
+			Tstring tsHideDllPath = Utility::Module::GetModulePath(hModule) + TEXT("\\") + TEXT("HideSelf.dll");
+			HMODULE hHideDll = LoadLibrary(tsHideDllPath.c_str());
+			VOID(WINAPI* AddDll)(HMODULE) = (VOID(WINAPI*)(HMODULE))GetProcAddress(hHideDll, "AddDll");
+			AddDll(hModule);
+		}
+		break;
+	}
 	G_DLLModule = hModule;
     return TRUE;
 }

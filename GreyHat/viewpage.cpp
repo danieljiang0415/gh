@@ -138,7 +138,7 @@ BOOL CViewPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 
 	ViewPage.m_hBlockEvent = CreateEvent( NULL, FALSE, FALSE, NULL );
 	InitializeCriticalSection( &ViewPage.m_csPacketListCriticalSection );
-
+	//__asm int 3;
 	if (FALSE == PluginWrap.InstallPlugin(&OnProcessSendData, &OnProcessRecvData))
 		MessageBox(NULL, TEXT("°²×°PluginÊ§°Ü£¡"), TEXT("´íÎó"), MB_OK);
 

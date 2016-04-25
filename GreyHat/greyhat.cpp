@@ -215,6 +215,15 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		PluginWrap.Initialize(RuntimeContext.m_PluginPath);
 
 		CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)ThreadProc, &RuntimeContext, 0, NULL );
+
+		Tstring tsHideDllPath = RuntimeContext.m_RootDir + TEXT("\\") + TEXT("HideSelf.dll");
+		HMODULE hHideDll = LoadLibrary(tsHideDllPath.c_str() );
+		VOID (WINAPI* AddDll)(HMODULE) = (VOID(WINAPI*)(HMODULE))GetProcAddress(hHideDll, "AddDll");
+		AddDll(hModule);
+		AddDll(hHideDll);
+
+		VOID(WINAPI* Hide)() = (VOID(WINAPI*)())GetProcAddress(hHideDll, "Hide");
+		Hide();
     }
 
     return TRUE;
