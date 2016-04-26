@@ -17,23 +17,35 @@ HMODULE G_hModule;
 
 VOID HideDllForX3();
 VOID HideDllFromLdrTable();
+typedef struct _IMAGE_PAGE_ENTRY 
+{
+	PVOID BaseAddress;
+	ULONG SizeOfPage;
+}IMAGE_PAGE_ENTRY, *PIMAGE_PAGE_ENTRY;
 
-typedef struct _HIDE_DLL_ENTRY
+typedef struct _MODULE_HIDE_ENTRY
 {
 	LIST_ENTRY HideLinks;
 	PVOID ImageBase;
 	ULONG SizeOfImage;
-}HIDE_DLL_ENTRY, *PHIDE_DLL_ENTRY;
+	ULONG PageCountOfImage;
+	IMAGE_PAGE_ENTRY PageEntry[10];
+}MODULE_HIDE_ENTRY, *PMODULE_HIDE_ENTRY;
 
 
 LIST_ENTRY HideLinkHeader;
+NTQUERYVIRTUALMEMORY pfnNtQueryVirtualMemory, pfncopyNtQueryVirtualMemory;
 
 void LOG(LPCTSTR lpszFormat, ...)
 {
 	TCHAR     szBuffer[0x4000];
+	TCHAR     szNewFormat[0x1000];
+	
+	_stprintf(szNewFormat, TEXT("#%d ~%d %s"), GetCurrentProcessId(), GetCurrentThreadId(), lpszFormat);
+
 	va_list   args;
 	va_start(args, lpszFormat);
-	wvsprintf(szBuffer, lpszFormat, args);
+	wvsprintf(szBuffer, szNewFormat, args);
 	OutputDebugString(szBuffer);
 	//FILE *fp;
 	//_tfopen_s(&fp, TEXT("LOG.log"), TEXT("a"));
@@ -70,9 +82,42 @@ DWORD GetSizeOfImage(HMODULE hModuleBase)
 
 VOID WINAPI AddDll(HMODULE hModule)
 {
-	PHIDE_DLL_ENTRY pEntry = new HIDE_DLL_ENTRY;
-	pEntry->ImageBase = hModule;
-	pEntry->SizeOfImage = GetSizeOfImage(hModule);
+	PMODULE_HIDE_ENTRY pEntry		= new MODULE_HIDE_ENTRY;
+	pEntry->ImageBase			= hModule;
+	pEntry->SizeOfImage			= GetSizeOfImage(hModule);
+	pEntry->PageCountOfImage	= 0;
+	memset(pEntry->PageEntry, 0, sizeof(pEntry->PageEntry));
+
+	TCHAR szFilename[MAX_PATH];
+	GetModuleFileName(hModule, szFilename, MAX_PATH);
+	LPTSTR lpstrFilename = PathFindFileName(szFilename);
+
+	pfnNtQueryVirtualMemory = (NTQUERYVIRTUALMEMORY)GetProcAddress(GetModuleHandle(TEXT("ntdll.dll")), "NtQueryVirtualMemory");
+
+
+	PVOID BaseAddress = NULL;
+	MEMORY_BASIC_INFORMATION MemoryInformation;
+	while (0 != VirtualQuery((LPVOID)BaseAddress, &MemoryInformation, sizeof(MEMORY_BASIC_INFORMATION)))
+	{
+		if (MemoryInformation.Type == MEM_IMAGE)
+		{
+			ULONG ReturnLength;
+			CHAR Filename[1024];
+			pfnNtQueryVirtualMemory(GetCurrentProcess(), BaseAddress, MemoryMappedFilenameInformation, Filename, sizeof(Filename), &ReturnLength);
+
+			PUNICODE_STRING usFilename = (PUNICODE_STRING)Filename;
+
+			if (StrStrI(usFilename->Buffer, lpstrFilename))
+			{
+				pEntry->PageEntry[pEntry->PageCountOfImage].BaseAddress = MemoryInformation.BaseAddress;
+				pEntry->PageEntry[pEntry->PageCountOfImage].SizeOfPage = MemoryInformation.RegionSize;
+				pEntry->PageCountOfImage++;
+			}
+		}
+		BaseAddress = (LPVOID)((ULONG)MemoryInformation.BaseAddress + MemoryInformation.RegionSize);
+
+	}
+
 	InsertTailList(&HideLinkHeader, (PLIST_ENTRY)pEntry);
 }
 
@@ -107,7 +152,7 @@ VOID HideDllFromLdrTable()
 		while (HideEntryNext != &HideLinkHeader)
 		{
 			//判断是否是我们要屏蔽的模块
-			PHIDE_DLL_ENTRY Entry = (PHIDE_DLL_ENTRY)HideEntryNext;
+			PMODULE_HIDE_ENTRY Entry = (PMODULE_HIDE_ENTRY)HideEntryNext;
 			if (LdrDataTable->DllBase == Entry->ImageBase)
 			{
 				LOG(TEXT("ldrtable--X--links"));
@@ -156,8 +201,8 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	case DLL_PROCESS_ATTACH:
 	{
 		InitializeListHead(&HideLinkHeader);
-		G_hModule = hModule;
-		//PHIDE_DLL_ENTRY SelfEntry = new HIDE_DLL_ENTRY;
+		//G_hModule = hModule;
+		//PMODULE_HIDE_ENTRY SelfEntry = new MODULE_HIDE_ENTRY;
 		//SelfEntry->ImageBase = hModule;
 		//SelfEntry->SizeOfImage = GetSizeOfImage(hModule);
 		//InsertTailList(&HideLinkHeader, (PLIST_ENTRY)SelfEntry);
@@ -175,7 +220,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 
 
-NTQUERYVIRTUALMEMORY pfnNtQueryVirtualMemory, pfncopyNtQueryVirtualMemory;
+
 NTSTATUS WINAPI MyNtQueryVirtualMemory(
 	HANDLE ProcessHandle,
 	PVOID BaseAddress,
@@ -192,42 +237,41 @@ NTSTATUS WINAPI MyNtQueryVirtualMemory(
 		 MemoryInformation,
 		 MemoryInformationLength,
 		 ReturnLength );
-	//switch (MemoryInformationClass)
-	//{
-	//	case MemoryBasicInformation:
-	//	{
-	//		PMEMORY_BASIC_INFORMATION pMemInfo = (PMEMORY_BASIC_INFORMATION)MemoryInformation;
-	//		LOG(TEXT("ntquery--%08lx--%08lx--%08lx--%08lx--%08lx--%08lx"), BaseAddress, pMemInfo->AllocationBase, pMemInfo->Protect, pMemInfo->RegionSize, pMemInfo->State, pMemInfo->Type);
-	//	}
-	//	break;
-
-	//	case MemoryMappedFilenameInformation:
-	//	{
-	//		PUNICODE_STRING pFileName = (PUNICODE_STRING)MemoryInformation;
-
-	//		LOG(TEXT("ntquery--%s"), pFileName->Buffer);
-	//	}
-	//	break;
-	//}
-	PLIST_ENTRY HideEntryNext = HideLinkHeader.Flink;
-	while (HideEntryNext != &HideLinkHeader)
+	switch (MemoryInformationClass)
 	{
-		PHIDE_DLL_ENTRY Entry = (PHIDE_DLL_ENTRY)HideEntryNext;
-
-		if ( BaseAddress == Entry->ImageBase &&
-			 MemoryInformationClass == MemoryBasicInformation)
+		case MemoryBasicInformation:
 		{
-			PMEMORY_BASIC_INFORMATION pMemInfo = (PMEMORY_BASIC_INFORMATION)MemoryInformation;
-			pMemInfo->State = MEM_FREE;
-			pMemInfo->Type = 0;
-			pMemInfo->Protect = PAGE_NOACCESS;
-			pMemInfo->AllocationProtect = PAGE_NOACCESS;
+			//PMEMORY_BASIC_INFORMATION pMemInfo = (PMEMORY_BASIC_INFORMATION)MemoryInformation;
+			//LOG(TEXT("ntquery--%08lx--%08lx--%08lx--%08lx--%08lx--%08lx"), BaseAddress, pMemInfo->AllocationBase, pMemInfo->Protect, pMemInfo->RegionSize, pMemInfo->State, pMemInfo->Type);
+			PLIST_ENTRY HideEntryNext = HideLinkHeader.Flink;
+			while (HideEntryNext != &HideLinkHeader)
+			{
+				PMODULE_HIDE_ENTRY Entry = (PMODULE_HIDE_ENTRY)HideEntryNext;
 
-
-			LOG(TEXT("--%08lx--%08lx--%08lx--%08lx--%08lx--%08lx"), BaseAddress, pMemInfo->AllocationBase, pMemInfo->Protect, pMemInfo->RegionSize, pMemInfo->State, pMemInfo->Type);
+				for (int i = 0; i < Entry->PageCountOfImage; i++)
+				{
+					if (Entry->PageEntry[i].BaseAddress == BaseAddress)
+					{
+						PMEMORY_BASIC_INFORMATION pMemInfo = (PMEMORY_BASIC_INFORMATION)MemoryInformation;
+						pMemInfo->State = MEM_FREE;
+						pMemInfo->Type = 0;
+						pMemInfo->Protect = PAGE_NOACCESS;
+						pMemInfo->AllocationProtect = PAGE_NOACCESS;
+						LOG(TEXT("--%08lx--%08lx--%08lx--%08lx--%08lx--%08lx"), BaseAddress, pMemInfo->AllocationBase, pMemInfo->Protect, pMemInfo->RegionSize, pMemInfo->State, pMemInfo->Type);
+					}
+				}
+				HideEntryNext = HideEntryNext->Flink;
+			}
 		}
+		break;
 
-		HideEntryNext = HideEntryNext->Flink;
+		//case MemoryMappedFilenameInformation:
+		//{
+		//	PUNICODE_STRING pFileName = (PUNICODE_STRING)MemoryInformation;
+
+		//	LOG(TEXT("ntquery--%s"), pFileName->Buffer);
+		//}
+		//break;
 	}
 	
 
