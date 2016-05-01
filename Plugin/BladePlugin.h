@@ -11,7 +11,7 @@ public:
 	BOOL InstallPlugin(SENDPROCHANDLER pfnHandleInputProc, RECVPROCHANDLER pfnHandleOutputProc);
 	BOOL UnInstallPlugin();
 private:
-	static ULONG m_ulPatchAddr;
+	static ULONG m_sPatchAt;
 protected:
 	BOOL PatchUserDefineAddr();
 	BOOL UnPatch();

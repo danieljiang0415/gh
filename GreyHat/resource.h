@@ -26,6 +26,7 @@
 #define IDD_STEP                        171
 #define IDM_STEP                        172
 #define IDD_STEPNUM                     173
+#define IDD_DIALOG1                     174
 #define IDC_LISTVIEW_PACKETOPERATION    1036
 #define IDC_PACKETLST                   1055
 #define IDC_ENABLE_BLOCK                1056
@@ -172,7 +173,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        174
+#define _APS_NEXT_RESOURCE_VALUE        175
 #define _APS_NEXT_COMMAND_VALUE         32811
 #define _APS_NEXT_CONTROL_VALUE         1153
 #define _APS_NEXT_SYMED_VALUE           110

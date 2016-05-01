@@ -6,3 +6,9 @@
 
 // TODO: reference any additional headers you need in STDAFX.H
 // and not in this file
+//TCHAR szRootPath[MAX_PATH];
+//TCHAR szProcessPath[MAX_PATH];
+//TCHAR szConfigPath[MAX_PATH];
+
+TString strRootPath, strProcessPath, strConfigPath;
+HMODULE hCurrentModule;

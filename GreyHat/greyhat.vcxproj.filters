@@ -16,6 +16,15 @@
     <Filter Include="common">
       <UniqueIdentifier>{284b9293-90d1-4e1a-83f8-d59185ce19ce}</UniqueIdentifier>
     </Filter>
+    <Filter Include="common\json">
+      <UniqueIdentifier>{8924521f-42ee-4dae-b267-2c3e6ed66ea6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common\base64">
+      <UniqueIdentifier>{d07ba203-4071-4f9d-b645-961ffa3ac037}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common\base64\modp_base64">
+      <UniqueIdentifier>{121ce876-40f4-4b2f-bdc9-08b8ecbf0d11}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ctrl.cpp">
@@ -51,8 +60,29 @@
     <ClCompile Include="PluginWrap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RuntimeContext.cpp">
+    <ClCompile Include="HideSelf.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DOMPlugin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Plugin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PluginBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="json\jsoncpp.cpp">
+      <Filter>common\json</Filter>
+    </ClCompile>
+    <ClCompile Include="Http.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="base64\base64.cpp">
+      <Filter>common\base64</Filter>
+    </ClCompile>
+    <ClCompile Include="base64\modp_base64\modp_b64.cc">
+      <Filter>common\base64\modp_base64</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -92,8 +122,38 @@
     <ClInclude Include="PluginWrap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RuntimeContext.h">
+    <ClInclude Include="nativedef.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DOMPlugin.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Plugin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PluginBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HideSelf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="json\json\json.h">
+      <Filter>common\json</Filter>
+    </ClInclude>
+    <ClInclude Include="json\json\json-forwards.h">
+      <Filter>common\json</Filter>
+    </ClInclude>
+    <ClInclude Include="Http.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="base64\base64.h">
+      <Filter>common\base64</Filter>
+    </ClInclude>
+    <ClInclude Include="base64\modp_base64\modp_b64.h">
+      <Filter>common\base64\modp_base64</Filter>
+    </ClInclude>
+    <ClInclude Include="base64\modp_base64\modp_b64_data.h">
+      <Filter>common\base64\modp_base64</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

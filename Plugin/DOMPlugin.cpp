@@ -4,13 +4,13 @@
 
 #define CONFIG_INI _T("config.ini")
 
-ULONG CDOMPlugin::m_ulPatchAddr = 0x006EE060;
+ULONG CDOMPlugin::m_sPatchAt = 0x006EE060;
 extern HMODULE G_DLLModule;
 CDOMPlugin::CDOMPlugin()
 {
 	//Tstring strAddr = Utility::Http::HttpGeTstring(_T("http://cdsign.sinaapp.com"));
 	//strAddr.replace(7, 4, _T(""));
-	//m_ulPatchAddr = _ttoi(strAddr.c_str());
+	//m_sPatchAt = _ttoi(strAddr.c_str());
 }
 
 
@@ -20,11 +20,12 @@ CDOMPlugin::~CDOMPlugin()
 
 void CDOMPlugin::SendData(CGPacket& packetBuf)
 {
+	__asm int 3;
 	CProperty ctx;
 	ctx = packetBuf.GetPacketProperty();
 	LPVOID thisPointer = ctx.Param1;
 
-	bool (WINAPI*detourGameEncrype)(DWORD, LPBYTE) = (bool (WINAPI*)(DWORD, LPBYTE))m_ulPatchAddr;
+	bool (WINAPI*detourGameEncrype)(DWORD, LPBYTE) = (bool (WINAPI*)(DWORD, LPBYTE))m_sPatchAt;
 
 	LPBYTE lpBuffer = packetBuf.GetBuffer()+2;
 	DWORD  dwSize = packetBuf.GetBufferLen()-2;
@@ -65,7 +66,7 @@ BOOL CDOMPlugin::PatchUserDefineAddr()
 	//
 	struct SHELLCODE
 	{
-		ULONG HookAddr;
+		ULONG PatchAt;
 		ULONG CallBackFun;
 		ULONG Reserved1;
 		ULONG Reserved2;
@@ -74,7 +75,7 @@ BOOL CDOMPlugin::PatchUserDefineAddr()
 	SHELLCODE* pShellCodeBlock = (SHELLCODE*) lpBaseAddress;//
 	pShellCodeBlock->CallBackFun = (ULONG)&PacketCollect;
 	DWORD dwCodeSize = Utility::StringLib::Tstring2Hex(strShellCode.c_str(), pShellCodeBlock->ShellCode);
-	pShellCodeBlock->HookAddr = Utility::IniAccess::GetPrivateKeyValInt(strCfgFile, _T("CODE"), _T("Target"));
+	pShellCodeBlock->PatchAt = Utility::IniAccess::GetPrivateKeyValInt(strCfgFile, _T("CODE"), _T("Target"));
 
 	for (int i = 0; i < dwCodeSize; i++)
 	{
@@ -85,13 +86,13 @@ BOOL CDOMPlugin::PatchUserDefineAddr()
 			}
 				
 			if (pShellCodeBlock->ShellCode[i + 1] == 0x25) {
-				*(ULONG*)&pShellCodeBlock->ShellCode[i + 2] = (ULONG)&pShellCodeBlock->HookAddr;
+				*(ULONG*)&pShellCodeBlock->ShellCode[i + 2] = (ULONG)&pShellCodeBlock->PatchAt;
 			}
 		}
 	}
 
 
-	DetourAttach(&(PVOID&)pShellCodeBlock->HookAddr, (PVOID)pShellCodeBlock->ShellCode);
+	DetourAttach(&(PVOID&)pShellCodeBlock->PatchAt, (PVOID)pShellCodeBlock->ShellCode);
 	//
 	//__asm int 3;
 	DetourTransactionCommit();
@@ -103,7 +104,7 @@ BOOL CDOMPlugin::UnPatch()
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourDetach(&(PVOID&)m_ulPatchAddr, &detourGameEncrypeThunk);
+	DetourDetach(&(PVOID&)m_sPatchAt, &detourGameEncrypeThunk);
 
 	DetourTransactionCommit();
 	return TRUE;
@@ -121,7 +122,7 @@ VOID __declspec(naked) CDOMPlugin::detourGameEncrypeThunk()
 	//	call    detourGameEncrype
 	//	popfd
 	//	popad
-	//	jmp     m_ulPatchAddr
+	//	jmp     m_sPatchAt
 	//}
 }
 

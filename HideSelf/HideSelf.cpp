@@ -90,7 +90,7 @@ LPVOID BooyerSearch(LPBYTE lpSrc, DWORD dwStringLen, LPBYTE lpSign, DWORD dwSign
 //		qsBc[x[i]] = m - i;
 //}
 
-#define ASIZE 255
+#define ASIZE 256
 char* QS(char *x, int m, char *y, int n) {
 	int i, j, qsBc[ASIZE];
 

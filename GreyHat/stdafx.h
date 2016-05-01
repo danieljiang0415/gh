@@ -44,3 +44,17 @@
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
 #endif
+
+#include<string>
+using namespace std;
+#ifdef UNICODE
+typedef wstring TString;
+#else // UNICODE
+typedef string TString;
+#endif // UNICODE
+
+//extern TCHAR szRootPath[MAX_PATH];
+//extern TCHAR szProcessPath[MAX_PATH];
+//extern TCHAR szConfigPath[MAX_PATH];
+extern TString strRootPath, strProcessPath, strConfigPath;
+extern HMODULE hCurrentModule;

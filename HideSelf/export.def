@@ -1,5 +1,0 @@
-LIBRARY HideDll
-
-EXPORTS
-		AddDll @1
-		Hide @2

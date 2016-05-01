@@ -27,17 +27,17 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\detours\include\detours.h">
-      <Filter>Header Files\detours</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\detours\include\detver.h">
-      <Filter>Header Files\detours</Filter>
-    </ClInclude>
     <ClInclude Include="Mem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="nativedef.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\detours\include\detours.h">
+      <Filter>Header Files\detours</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\detours\include\detver.h">
+      <Filter>Header Files\detours</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -50,10 +50,5 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="export.def">
-      <Filter>Source Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

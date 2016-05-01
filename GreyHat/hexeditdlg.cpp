@@ -13,7 +13,7 @@ DWORD WINAPI ThrdStepProc( LPVOID lpThreadParameter )
 	DWORD dwInterval = 0;
 
 
-	dwInterval = Utility::IniAccess::GetPrivateKeyValInt(	RuntimeContext.m_ConfigPath, _T("自动发包"), _T("间隔时间/ms"));
+	dwInterval = Utility::IniAccess::GetPrivateKeyValInt(	strConfigPath, _T("自动发包"), _T("间隔时间/ms"));
 	
 
 	pHexEditDlg->m_bIsSteping = TRUE;
@@ -80,7 +80,7 @@ DWORD WINAPI ThrdStepProc( LPVOID lpThreadParameter )
 
 CHexEditDlg::CHexEditDlg()
 {
-	m_hInst = RuntimeContext.m_hRuntimeInstance;
+	m_hInst = hCurrentModule;
 
 	m_hWnd = NULL;
 	m_hParaendWnd = NULL;
@@ -207,7 +207,7 @@ BOOL CHexEditDlg::On_WM_InitDialog(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 	CHexEditDlg *pThisDlg = (CHexEditDlg*)lParam;
 	
 	pThisDlg->m_hHexView= CreateWindowEx( 0, TEXT("HexEdit32"), TEXT(""), 
-		WS_CHILD | WS_VISIBLE, 0, 0, 1, 1, hwnd, NULL/*( HMENU )IDC_HEX_EDIT*/, RuntimeContext.m_hRuntimeInstance, 0 ); 
+		WS_CHILD | WS_VISIBLE, 0, 0, 1, 1, hwnd, NULL/*( HMENU )IDC_HEX_EDIT*/, hCurrentModule, 0 ); 
 
 	SetWindowLongPtr(hwnd, GWL_USERDATA, (DWORD_PTR)pThisDlg);
 
@@ -313,7 +313,7 @@ void CHexEditDlg::On_WM_Command( HWND hWnd, int id, HWND hWndCtl, UINT codeNotif
 
 HWND CHexEditDlg::Create( LPTSTR lpName, HWND hParaent)
 {
-	HWND hDlg = CreateDialogParam(RuntimeContext.m_hRuntimeInstance, lpName/*MAKEINTRESOURCE(IDD_HEXDLG)*/, hParaent, DlgProc, (LPARAM)this);
+	HWND hDlg = CreateDialogParam(hCurrentModule, lpName/*MAKEINTRESOURCE(IDD_HEXDLG)*/, hParaent, DlgProc, (LPARAM)this);
 	ShowWindow(hDlg,SW_SHOW);
 	return hDlg;
 }

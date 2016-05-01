@@ -1,6 +1,8 @@
 #pragma once
 #include "GPacket.h"
 
+class CPluginBase;
+
 typedef VOID(WINAPI*SENDPROCHANDLER)(CGPacket&);
 typedef VOID(WINAPI*RECVPROCHANDLER)(CGPacket&);
 
@@ -25,6 +27,8 @@ public:
 private:
 	HMODULE m_hPluginDllInstance;
 	Tstring m_strPluginDllPath;
+
+	CPluginBase* m_pPlugin;
 public:
 	VOID Initialize(Tstring&);
 	VOID EnableSeePacket(bool bEnable);

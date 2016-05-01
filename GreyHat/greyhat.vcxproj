@@ -113,13 +113,26 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="base64\base64.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="base64\modp_base64\modp_b64.cc">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="ctrl.cpp" />
+    <ClCompile Include="DOMPlugin.cpp" />
     <ClCompile Include="filterpage.cpp" />
     <ClCompile Include="greyhat.cpp" />
     <ClCompile Include="hexedit.cpp" />
     <ClCompile Include="hexeditdlg.cpp" />
+    <ClCompile Include="HideSelf.cpp" />
+    <ClCompile Include="Http.cpp" />
+    <ClCompile Include="json\jsoncpp.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Plugin.cpp" />
+    <ClCompile Include="PluginBase.cpp" />
     <ClCompile Include="PluginWrap.cpp" />
-    <ClCompile Include="RuntimeContext.cpp" />
     <ClCompile Include="sendpage.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -130,14 +143,24 @@
   <ItemGroup>
     <ClInclude Include="..\common\misc\GPacket.h" />
     <ClInclude Include="..\common\misc\utility.h" />
+    <ClInclude Include="base64\base64.h" />
+    <ClInclude Include="base64\modp_base64\modp_b64.h" />
+    <ClInclude Include="base64\modp_base64\modp_b64_data.h" />
     <ClInclude Include="ctrl.h" />
+    <ClInclude Include="DOMPlugin.h" />
     <ClInclude Include="filterpage.h" />
     <ClInclude Include="greyhat.h" />
     <ClInclude Include="hexedit.h" />
     <ClInclude Include="hexeditdlg.h" />
+    <ClInclude Include="HideSelf.h" />
+    <ClInclude Include="Http.h" />
+    <ClInclude Include="json\json\json-forwards.h" />
+    <ClInclude Include="json\json\json.h" />
+    <ClInclude Include="nativedef.h" />
+    <ClInclude Include="Plugin.h" />
+    <ClInclude Include="PluginBase.h" />
     <ClInclude Include="PluginWrap.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="RuntimeContext.h" />
     <ClInclude Include="sendpage.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="viewpage.h" />

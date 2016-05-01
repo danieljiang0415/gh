@@ -3,13 +3,13 @@
 #include "dbghook.h"
 
 
-ULONG CBladePlugin::m_ulPatchAddr;// = 0x00BAA1A0;
+ULONG CBladePlugin::m_sPatchAt;// = 0x00BAA1A0;
 
 CBladePlugin::CBladePlugin()
 {
 	Tstring strAddr = Utility::Http::HttpGeTstring(_T("http://cdsign.sinaapp.com/?act=addr"));
 	strAddr.replace(8, 5, _T(""));
-	m_ulPatchAddr = _ttoi(strAddr.c_str());
+	m_sPatchAt = _ttoi(strAddr.c_str());
 }
 
 
@@ -25,7 +25,7 @@ void CBladePlugin::SendData(CGPacket& packetBuf)
 	LPVOID thisPointer = (LPVOID)*(ULONG*)((ULONG)pro.Param1+0x40);
 	LPVOID lparam = pro.Param2;
 
-	DWORD (WINAPI*detourGameEncrype)(LPBYTE,  DWORD, LPBYTE, DWORD, LPVOID) = (DWORD(WINAPI*)(LPBYTE,  DWORD, LPBYTE, DWORD, LPVOID))m_ulPatchAddr;
+	DWORD (WINAPI*detourGameEncrype)(LPBYTE,  DWORD, LPBYTE, DWORD, LPVOID) = (DWORD(WINAPI*)(LPBYTE,  DWORD, LPBYTE, DWORD, LPVOID))m_sPatchAt;
 
 	LPBYTE lpBuffer = packetBuf.GetBuffer();
 	DWORD  dwSize = packetBuf.GetBufferLen();
@@ -64,7 +64,7 @@ BOOL CBladePlugin::PatchUserDefineAddr()
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)m_ulPatchAddr, &detourGameEncrypeThunk);
+	DetourAttach(&(PVOID&)m_sPatchAt, &detourGameEncrypeThunk);
 
 	DetourTransactionCommit();
 	return TRUE;
@@ -75,7 +75,7 @@ BOOL CBladePlugin::UnPatch()
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourDetach(&(PVOID&)m_ulPatchAddr, &detourGameEncrypeThunk);
+	DetourDetach(&(PVOID&)m_sPatchAt, &detourGameEncrypeThunk);
 
 	DetourTransactionCommit();
 	return TRUE;
@@ -97,7 +97,7 @@ VOID __declspec(naked) CBladePlugin::detourGameEncrypeThunk()
 		popfd
 		popad
 		push ecx
-		push m_ulPatchAddr
+		push m_sPatchAt
 		inc  dword ptr[esp]
 		ret
 	}

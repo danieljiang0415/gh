@@ -116,13 +116,13 @@ BOOL CViewPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 	LvInsertColumn( ViewPage.m_hListView, _T("IP/¶Ë¿Ú"),  140, 5 );
 
 
-	RegisterHexEditorClass( RuntimeContext.m_hRuntimeInstance );
-	ViewPage.m_hMenu = LoadMenu( RuntimeContext.m_hRuntimeInstance, _T("transmit") );
+	RegisterHexEditorClass( hCurrentModule );
+	ViewPage.m_hMenu = LoadMenu( hCurrentModule, _T("transmit") );
 
 	//RECT rc;
 	//GetClientRect(GetDlgItem(hwnd, IDC_HEXV), &rc);
 	ViewPage.m_hHexView = CreateWindowEx( 0, text("HexEdit32"), text(""), 
-		WS_CHILD | WS_VISIBLE, 0, 0, 1, 1, ViewPage.m_hWnd, NULL/*( HMENU )IDC_HEXVIEW*/, RuntimeContext.m_hRuntimeInstance, 0 ); 
+		WS_CHILD | WS_VISIBLE, 0, 0, 1, 1, ViewPage.m_hWnd, NULL/*( HMENU )IDC_HEXVIEW*/, hCurrentModule, 0 ); 
 	HexEdit_SetReadOnly(ViewPage.m_hHexView, TRUE);
 
 	CheckDlgButton( hwnd, IDC_ENABLE_LOG,		FALSE );
@@ -172,7 +172,7 @@ BOOL CViewPage::OnWmInit(HWND hwnd, HWND hWndFocus, LPARAM lParam)
 	//	MessageBox(hwnd, _T("Hotkey 'ALT+b' registered, using MOD_NOREPEAT flag\n"), _T("!!"), MB_OK);
 	//}
 
-	CreateDialog(RuntimeContext.m_hRuntimeInstance, MAKEINTRESOURCE(IDD_ST_DIALOG), hwnd, &CGPacketFilterSettingPage::FilterPageMessageProc);
+	CreateDialog(hCurrentModule, MAKEINTRESOURCE(IDD_ST_DIALOG), hwnd, &CGPacketFilterSettingPage::FilterPageMessageProc);
 	return TRUE;
 }
 
@@ -394,7 +394,7 @@ VOID CViewPage::OnWmClose(HWND hwnd)
 {
 	TerminateThread(ViewPage.m_hUpdateThrd, 0);
 	FreePackets();
-	UnregisterHexEditorClass( RuntimeContext.m_hRuntimeInstance );
+	UnregisterHexEditorClass( hCurrentModule );
 	DestroyMenu( ViewPage.m_hMenu );
 	if (FALSE == PluginWrap.UnInstallPlugin())
 		MessageBox(NULL, TEXT("Ð¶ÔØPluginÊ§°Ü£¡"), TEXT("´íÎó"), MB_OK);

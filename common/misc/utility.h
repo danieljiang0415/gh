@@ -22,7 +22,6 @@ typedef unsigned char uint8_t;
 typedef int  int32_t;
 typedef unsigned int  uint32_t;
 
-#define null 0
 #ifdef UNICODE
 	#define text(quote) L##quote
 #else

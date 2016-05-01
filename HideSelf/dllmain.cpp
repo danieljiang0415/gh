@@ -16,7 +16,7 @@
 HMODULE G_hModule;
 
 VOID HideDllForX3();
-VOID HideDllFromLdrTable();
+VOID RemoveHideListModulesFromLdrTable();
 typedef struct _IMAGE_PAGE_ENTRY 
 {
 	PVOID BaseAddress;
@@ -35,6 +35,8 @@ typedef struct _MODULE_HIDE_ENTRY
 
 LIST_ENTRY HideLinkHeader;
 NTQUERYVIRTUALMEMORY pfnNtQueryVirtualMemory, pfncopyNtQueryVirtualMemory;
+RTLINITUNICODESTRINGEX pfnRtlInitUnicodeStringEx;
+
 
 void LOG(LPCTSTR lpszFormat, ...)
 {
@@ -123,7 +125,7 @@ VOID WINAPI AddDll(HMODULE hModule)
 
 VOID WINAPI Hide()
 {
-	HideDllFromLdrTable();
+	RemoveHideListModulesFromLdrTable();
 	HideDllForX3();
 }
 
@@ -136,9 +138,8 @@ LPVOID __declspec(naked) CurrentPEB()
 		ret
 	}
 }
-VOID HideDllFromLdrTable()
+VOID RemoveHideListModulesFromLdrTable()
 {
-	//LOG(TEXT("HideDllFromLdrTable ------>%08lx"), hModule);
 	LPVOID Peb = CurrentPEB();
 	PPEB_LDR_DATA Ldr = *(PPEB_LDR_DATA*)((ULONG)Peb + 0x0c);
 	LOG(TEXT("peb[%08lx]---ldr[%08lx]"), Peb, Ldr);
@@ -156,14 +157,14 @@ VOID HideDllFromLdrTable()
 			if (LdrDataTable->DllBase == Entry->ImageBase)
 			{
 				LOG(TEXT("ldrtable--X--links"));
-				LdrDataTable->InLoadOrderLinks.Flink->Blink = LdrDataTable->InLoadOrderLinks.Blink;
-				LdrDataTable->InLoadOrderLinks.Blink->Flink = LdrDataTable->InLoadOrderLinks.Flink;
+				//LdrDataTable->InLoadOrderLinks.Flink->Blink = LdrDataTable->InLoadOrderLinks.Blink;
+				//LdrDataTable->InLoadOrderLinks.Blink->Flink = LdrDataTable->InLoadOrderLinks.Flink;
 
-				LdrDataTable->InMemoryOrderLinks.Flink->Blink = LdrDataTable->InMemoryOrderLinks.Blink;
-				LdrDataTable->InMemoryOrderLinks.Blink->Flink = LdrDataTable->InMemoryOrderLinks.Flink;
+				//LdrDataTable->InMemoryOrderLinks.Flink->Blink = LdrDataTable->InMemoryOrderLinks.Blink;
+				//LdrDataTable->InMemoryOrderLinks.Blink->Flink = LdrDataTable->InMemoryOrderLinks.Flink;
 
-				LdrDataTable->InInitializationOrderLinks.Flink->Blink = LdrDataTable->InInitializationOrderLinks.Blink;
-				LdrDataTable->InInitializationOrderLinks.Blink->Flink = LdrDataTable->InInitializationOrderLinks.Flink;
+				//LdrDataTable->InInitializationOrderLinks.Flink->Blink = LdrDataTable->InInitializationOrderLinks.Blink;
+				//LdrDataTable->InInitializationOrderLinks.Blink->Flink = LdrDataTable->InInitializationOrderLinks.Flink;
 			}
 
 			HideEntryNext = HideEntryNext->Flink;
@@ -181,7 +182,7 @@ VOID HideDllFromLdrTable()
 //DWORD WINAPI ThreadHide(LPVOID lpParam)
 //{
 //	HMODULE hModule = (HMODULE)lpParam;
-//	HideDllFromLdrTable( hModule );
+//	RemoveHideListModulesFromLdrTable( hModule );
 //
 //	LOG(TEXT("fix x3"));
 //	HideDllForX3();
@@ -201,13 +202,15 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	case DLL_PROCESS_ATTACH:
 	{
 		InitializeListHead(&HideLinkHeader);
-		//G_hModule = hModule;
-		//PMODULE_HIDE_ENTRY SelfEntry = new MODULE_HIDE_ENTRY;
-		//SelfEntry->ImageBase = hModule;
-		//SelfEntry->SizeOfImage = GetSizeOfImage(hModule);
-		//InsertTailList(&HideLinkHeader, (PLIST_ENTRY)SelfEntry);
+
+		PMODULE_HIDE_ENTRY SelfEntry = new MODULE_HIDE_ENTRY;
+		SelfEntry->ImageBase = hModule;
+		SelfEntry->SizeOfImage = GetSizeOfImage(hModule);
+		InsertTailList(&HideLinkHeader, (PLIST_ENTRY)SelfEntry);
 		AddDll(hModule);
 		Hide();
+		//RemoveHideListModulesFromLdrTable();
+		LOG(TEXT("DLL_PROCESS_ATTACH"));
 	}
 		break;
 	case DLL_THREAD_ATTACH:
@@ -218,6 +221,17 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	return TRUE;
 }
 
+//VOID WINAPI MyRtlInitUnicodeStringEx(
+//	_Inout_  PUNICODE_STRING DestinationString,
+//	_In_opt_ PCWSTR          SourceString
+//)
+//{
+//	if (wcsstr(SourceString, TEXT("hideself.dll")))
+//	{
+//		__asm int 3;
+//	}
+//	return pfnRtlInitUnicodeStringEx(DestinationString, SourceString);
+//}
 
 
 
@@ -253,10 +267,10 @@ NTSTATUS WINAPI MyNtQueryVirtualMemory(
 					if (Entry->PageEntry[i].BaseAddress == BaseAddress)
 					{
 						PMEMORY_BASIC_INFORMATION pMemInfo = (PMEMORY_BASIC_INFORMATION)MemoryInformation;
-						pMemInfo->State = MEM_FREE;
-						pMemInfo->Type = 0;
-						pMemInfo->Protect = PAGE_NOACCESS;
-						pMemInfo->AllocationProtect = PAGE_NOACCESS;
+						//pMemInfo->State = MEM_FREE;
+						//pMemInfo->Type = 0;
+						//pMemInfo->Protect = PAGE_NOACCESS;
+						//pMemInfo->AllocationProtect = PAGE_NOACCESS;
 						LOG(TEXT("--%08lx--%08lx--%08lx--%08lx--%08lx--%08lx"), BaseAddress, pMemInfo->AllocationBase, pMemInfo->Protect, pMemInfo->RegionSize, pMemInfo->State, pMemInfo->Type);
 					}
 				}
@@ -283,6 +297,8 @@ NTSTATUS WINAPI MyNtQueryVirtualMemory(
 VOID HideDllForX3()
 {
 	pfnNtQueryVirtualMemory = (NTQUERYVIRTUALMEMORY)GetProcAddress(GetModuleHandle(TEXT("ntdll.dll")), "NtQueryVirtualMemory");
+	//pfnRtlInitUnicodeStringEx = (RTLINITUNICODESTRINGEX)GetProcAddress(GetModuleHandle(TEXT("ntdll.dll")), "RtlInitUnicodeStringEx");
+
 
 	unsigned char copyNtQueryVirtualMemory[] = {
 		/*	
@@ -307,17 +323,18 @@ retry:
 		goto retry;
 	}
 
-	LOG(TEXT("real--[%08lx], copy--[%08lx]---crc--[%08lx]"), pfnNtQueryVirtualMemory, pfncopyNtQueryVirtualMemory, pdwCRCVirtualAddress);
+	LOG(TEXT("real--[%08lx], copy--[%08lx]--rtl--[%08lx]-crc--[%08lx]"), pfnNtQueryVirtualMemory, pfncopyNtQueryVirtualMemory, pfnRtlInitUnicodeStringEx, pdwCRCVirtualAddress);
 
 	//Sleep(60000);
 	//__asm int 3;
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)pfnNtQueryVirtualMemory, &MyNtQueryVirtualMemory);
+	DetourAttach(&(PVOID&)pfnNtQueryVirtualMemory, &MyNtQueryVirtualMemory); 
+	//DetourAttach(&(PVOID&)pfnRtlInitUnicodeStringEx, &MyRtlInitUnicodeStringEx);
 	if (FALSE == IsBadReadPtr(pfncopyNtQueryVirtualMemory, 32) && 
 		pfnNtQueryVirtualMemory != pfncopyNtQueryVirtualMemory) 
 	{
-		DetourAttach(&(PVOID&)pfncopyNtQueryVirtualMemory, &MyNtQueryVirtualMemory);
+		//DetourAttach(&(PVOID&)pfncopyNtQueryVirtualMemory, &MyNtQueryVirtualMemory);
 	}
 
 	DetourTransactionCommit();

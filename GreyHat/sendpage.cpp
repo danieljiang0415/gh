@@ -146,7 +146,7 @@ DWORD WINAPI CSendPage::ThrdSBNProc( LPVOID lpThreadParameter )
 	TCHAR tszTemp[256];
 
 
-	dwInterval = Utility::IniAccess::GetPrivateKeyValInt(RuntimeContext.m_ConfigPath, _T("自动发包"), _T("间隔时间/ms"));
+	dwInterval = Utility::IniAccess::GetPrivateKeyValInt(strConfigPath, _T("自动发包"), _T("间隔时间/ms"));
 
 
 	for ( int i=0; i < 15; i++ )
@@ -339,14 +339,14 @@ VOID CSendPage::OnButtonSaveAllData()
 	{
 		strTemp = GetText(GetDlgItem( SendPage.m_hWnd, SendPage.m_CtrlTable[i].dwEditBoxId));
 		_stprintf( tszTemp, _T("封包[%d]"), i );
-		Utility::IniAccess::SetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("发送封包"), tszTemp, strTemp);
+		Utility::IniAccess::SetPrivateKeyValString(strConfigPath, _T("发送封包"), tszTemp, strTemp);
 
 		_stprintf( tszTemp, _T("CHECK[%d]"),i );
-		Utility::IniAccess::SetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("发送封包"), tszTemp, 
+		Utility::IniAccess::SetPrivateKeyValString(strConfigPath, _T("发送封包"), tszTemp, 
 			BST_CHECKED==Button_GetCheck( GetDlgItem( SendPage.m_hWnd, SendPage.m_CtrlTable[i].dwCheckId) ) ? _T("1"):_T("0"));
 	}
 
-	Utility::IniAccess::SetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("自动发包"), _T("间隔时间/ms"), _T("100"));
+	Utility::IniAccess::SetPrivateKeyValString(strConfigPath, _T("自动发包"), _T("间隔时间/ms"), _T("100"));
 }
 
 VOID CSendPage::OnButtonClear()
@@ -363,13 +363,13 @@ VOID CSendPage::RestoreSendViewSettings()
 	for (int i=0; i<15; i++){
 
 		_stprintf( tszTemp, _T("封包[%d]"), i );
-		strTemp = Utility::IniAccess::GetPrivateKeyValString( RuntimeContext.m_ConfigPath, _T("发送封包"), tszTemp);
+		strTemp = Utility::IniAccess::GetPrivateKeyValString( strConfigPath, _T("发送封包"), tszTemp);
 
 		SetText(GetDlgItem(SendPage.m_hWnd, SendPage.m_CtrlTable[i].dwEditBoxId), strTemp);
 
 		BOOL bIsChecked;
 		_stprintf( tszTemp, _T("CHECK[%d]"), i );
-		bIsChecked = Utility::IniAccess::GetPrivateKeyValInt(RuntimeContext.m_ConfigPath, _T("发送封包"), tszTemp);
+		bIsChecked = Utility::IniAccess::GetPrivateKeyValInt(strConfigPath, _T("发送封包"), tszTemp);
 
 		Button_SetCheck(GetDlgItem(SendPage.m_hWnd,  SendPage.m_CtrlTable[i].dwCheckId), bIsChecked);
 

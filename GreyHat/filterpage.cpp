@@ -62,12 +62,11 @@ VOID CGPacketFilterSettingPage::OnButtonClear()
 {
 	DWORD dwLvCount;
 	CGPacketFilter* pFilter;
-
+	Tstring strUUID;
 	dwLvCount = LvGetItemCount(FilterSettingPage.m_hFilterList);
 	for (int i = 0; i < dwLvCount; i++) {
-		pFilter = (CGPacketFilter*)LvGetData(FilterSettingPage.m_hFilterList, i);
-		PluginWrap.DeleteFilter(pFilter->m_strUUID);
-		delete pFilter;
+		strUUID = LvGetItemText(FilterSettingPage.m_hFilterList, i, 4);
+		PluginWrap.DeleteFilter(strUUID);
 	}
 
 	LvRemoveAll(FilterSettingPage.m_hFilterList);
@@ -211,28 +210,28 @@ VOID CGPacketFilterSettingPage::SaveAllFilters()
 	TCHAR tcTemp[256];
 	_stprintf(tcTemp, _T("%d"), dwCount);
 	
-	Utility::IniAccess::SetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), _T("×ÜÊý"), Tstring(tcTemp));
+	Utility::IniAccess::SetPrivateKeyValString(strConfigPath, _T("ÂË¾µ"), _T("×ÜÊý"), Tstring(tcTemp));
 
 	for (int i = 0; i< dwCount; i++)
 	{
 		_stprintf(tcTemp, _T("¹Ø¼ü×Ö[%d]"), i);
-		Utility::IniAccess::SetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), tcTemp, LvGetItemText(FilterSettingPage.m_hFilterList, i, 1));
+		Utility::IniAccess::SetPrivateKeyValString(strConfigPath, _T("ÂË¾µ"), tcTemp, LvGetItemText(FilterSettingPage.m_hFilterList, i, 1));
 
 		_stprintf(tcTemp, _T("Ìæ»»Öµ[%d]"), i);
-		Utility::IniAccess::SetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), tcTemp, LvGetItemText(FilterSettingPage.m_hFilterList, i, 2));
+		Utility::IniAccess::SetPrivateKeyValString(strConfigPath, _T("ÂË¾µ"), tcTemp, LvGetItemText(FilterSettingPage.m_hFilterList, i, 2));
 
 		_stprintf(tcTemp, _T("¸ß¼¶ÂË¾µ[%d]"), i);
-		Utility::IniAccess::SetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), tcTemp, LvGetItemText(FilterSettingPage.m_hFilterList, i, 3));
+		Utility::IniAccess::SetPrivateKeyValString(strConfigPath, _T("ÂË¾µ"), tcTemp, LvGetItemText(FilterSettingPage.m_hFilterList, i, 3));
 
 		_stprintf(tcTemp, _T("UUID[%d]"), i);
-		Utility::IniAccess::SetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), tcTemp, LvGetItemText(FilterSettingPage.m_hFilterList, i, 4));
+		Utility::IniAccess::SetPrivateKeyValString(strConfigPath, _T("ÂË¾µ"), tcTemp, LvGetItemText(FilterSettingPage.m_hFilterList, i, 4));
 	}
 }
 
 VOID CGPacketFilterSettingPage::ReLoadAllFilters()
 {
 	DWORD dwCount;
-	dwCount = _ttoi(Utility::IniAccess::GetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), _T("×ÜÊý")).c_str());
+	dwCount = _ttoi(Utility::IniAccess::GetPrivateKeyValString(strConfigPath, _T("ÂË¾µ"), _T("×ÜÊý")).c_str());
 
 	for (int i = 0; i<dwCount; i++)
 	{
@@ -242,16 +241,16 @@ VOID CGPacketFilterSettingPage::ReLoadAllFilters()
 		Tstring strKeyWord, strReplaceData, strAdvanceKey, strUUID;
 
 		_stprintf(szBuf, text("¹Ø¼ü×Ö[%d]"), i );
-		strKeyWord = Utility::IniAccess::GetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), szBuf);
+		strKeyWord = Utility::IniAccess::GetPrivateKeyValString(strConfigPath, _T("ÂË¾µ"), szBuf);
 
 		_stprintf(szBuf, text("Ìæ»»Öµ[%d]"), i );
-		strReplaceData = Utility::IniAccess::GetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), szBuf);
+		strReplaceData = Utility::IniAccess::GetPrivateKeyValString(strConfigPath, _T("ÂË¾µ"), szBuf);
 
 		_stprintf(szBuf, text("¸ß¼¶ÂË¾µ[%d]"), i );
-		strAdvanceKey = Utility::IniAccess::GetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), szBuf);
+		strAdvanceKey = Utility::IniAccess::GetPrivateKeyValString(strConfigPath, _T("ÂË¾µ"), szBuf);
 
 		_stprintf(szBuf, _T("UUID[%d]"), i);
-		strUUID = Utility::IniAccess::GetPrivateKeyValString(RuntimeContext.m_ConfigPath, _T("ÂË¾µ"), szBuf);
+		strUUID = Utility::IniAccess::GetPrivateKeyValString(strConfigPath, _T("ÂË¾µ"), szBuf);
 
 		_stprintf(szBuf, _T("%d"), i );
 		LvInsertItem(FilterSettingPage.m_hFilterList, szBuf, i );

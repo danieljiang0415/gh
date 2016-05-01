@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "detours.h"
-
+#include "hideself.h"
 #pragma comment(lib,"detours.lib")
 //
 //compile error
@@ -22,7 +22,7 @@
 HWND g_hmain_dlg;
 
 CPluginWrap		PluginWrap;
-CRuntimeContext RuntimeContext;
+
 
 void on_pagetab_notify(HWND htabctrl,UINT pnm_code) 
 {
@@ -70,22 +70,12 @@ VOID WriteCoreLibFileExtraInfo(LPCTSTR lpcLocalFileName)
 	
 }
 
+
 DWORD WINAPI ThreadProc( LPVOID lParam )
 {
-	CRuntimeContext *pContext = (CRuntimeContext *)lParam;
 
-	//if (!Utility::File::IsFileExist(pContext->m_PluginPath.c_str()))
-	{
-	//	MessageBox(NULL, _T("找不到核心工作模块！"), TEXT("错误"), MB_OK);
-	//	return -1;
-	}
-	//else
-	{
-		new CPluginWrap(pContext->m_PluginPath);
-	}
-	DialogBox(pContext->m_hRuntimeInstance, MAKEINTRESOURCE( IDD_MAINDIALOG ), NULL, MainUIDlgProc );
-	PluginWrap.UnInitialize();
-    FreeLibraryAndExitThread(pContext->m_hRuntimeInstance, 0 );
+	DialogBox(hCurrentModule, MAKEINTRESOURCE( IDD_MAINDIALOG ), NULL, MainUIDlgProc );
+    FreeLibraryAndExitThread(hCurrentModule, 0 );
     return 0;
 }
 
@@ -116,8 +106,8 @@ VOID init_tab_ctrl(HWND htabctrl)
 	InsertTab( htabctrl,	 text("封包视图"),			0 );
 	InsertTab( htabctrl,	 text("发送/多重发送"),		1 );
 
-	CreateDialog(RuntimeContext.m_hRuntimeInstance, MAKEINTRESOURCE(IDD_PKT_DIALOG), htabctrl, &CViewPage::ViewPageProc);
-	CreateDialog(RuntimeContext.m_hRuntimeInstance, MAKEINTRESOURCE(IDD_SD_DIALOG), htabctrl, &CSendPage::SendPageProc);
+	CreateDialog(hCurrentModule, MAKEINTRESOURCE(IDD_PKT_DIALOG), htabctrl, &CViewPage::ViewPageProc);
+	CreateDialog(hCurrentModule, MAKEINTRESOURCE(IDD_SD_DIALOG), htabctrl, &CSendPage::SendPageProc);
 
 
 	RECT rcClient, rcTabItem;
@@ -156,12 +146,12 @@ BOOL OnWMInitDlg( HWND hWnd, HWND hWndFocus, LPARAM lParam )
 	}
 
 	//Set Dialog Icon
-	SendMessage( hWnd, WM_SETICON, ICON_BIG, ( LPARAM )LoadIcon( RuntimeContext.m_hRuntimeInstance, MAKEINTRESOURCE( IDI_ICON_BIG ) ) );
+	SendMessage( hWnd, WM_SETICON, ICON_BIG, ( LPARAM )LoadIcon( hCurrentModule, MAKEINTRESOURCE( IDI_ICON_BIG ) ) );
 	/////////////////////////////////////////////////////////////////////////
 	// Create the tab common control.
 	// 
-	RegisterHexEditorClass( RuntimeContext.m_hRuntimeInstance );
-	//g_popup_menu = LoadMenu(RuntimeContext.m_hRuntimeInstance, text("hexedit"));
+	RegisterHexEditorClass( hCurrentModule );
+	//g_popup_menu = LoadMenu(hCurrentModule, text("hexedit"));
 
 
 	init_tab_ctrl(GetDlgItem(hWnd, IDC_PAGE_TAB));
@@ -211,19 +201,29 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 {
     if ( ul_reason_for_call == DLL_PROCESS_ATTACH )
     {
-		RuntimeContext.InitContext(hModule);
-		PluginWrap.Initialize(RuntimeContext.m_PluginPath);
+		hCurrentModule = hModule;
+		
+		strRootPath = Utility::Module::GetModulePath(hModule);
 
-		CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)ThreadProc, &RuntimeContext, 0, NULL );
+		strProcessPath = Utility::Module::GetModulePath(NULL);
 
-		Tstring tsHideDllPath = RuntimeContext.m_RootDir + TEXT("\\") + TEXT("HideSelf.dll");
-		HMODULE hHideDll = LoadLibrary(tsHideDllPath.c_str() );
-		VOID (WINAPI* AddDll)(HMODULE) = (VOID(WINAPI*)(HMODULE))GetProcAddress(hHideDll, "AddDll");
-		AddDll(hModule);
-		AddDll(hHideDll);
+		strConfigPath = strRootPath + _T("\\") + CONFIG_FILE;
 
-		VOID(WINAPI* Hide)() = (VOID(WINAPI*)())GetProcAddress(hHideDll, "Hide");
-		Hide();
+
+		DWORD dwOldProtect;
+		char *trd = (char*)0x00401029;
+		VirtualProtect((PVOID)trd, 7, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+
+		trd[0] = 0xe9;
+		*(ULONG*)&trd[1] = (ULONG)&ThreadProc - 0x00401029 - 5;
+
+		//__asm int 3;
+		//HideModuleInit();
+		//HideModule(hModule);
+
+		CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)trd, NULL, 0, NULL );
+
+
     }
 
     return TRUE;
