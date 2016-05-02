@@ -30,7 +30,7 @@
 #include <windowsx.h>
 
 
-//#include "Utility.h"
+#include "..\common\misc\utility.h"
 
 // TODO: reference additional headers your program requires here
 #ifdef _UNICODE

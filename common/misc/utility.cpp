@@ -903,3 +903,29 @@ exit_proc:
 		}
 	}
 }
+
+namespace CommonLib
+{
+	void LOG(LPCTSTR lpszFormat, ...)
+	{
+		TCHAR     szBuffer[0x4000];
+		TCHAR     szNewFormat[0x1000];
+
+		_stprintf(szNewFormat, TEXT("#%d ~%d %s"), GetCurrentProcessId(), GetCurrentThreadId(), lpszFormat);
+
+		va_list   args;
+		va_start(args, lpszFormat);
+		wvsprintf(szBuffer, szNewFormat, args);
+		OutputDebugString(szBuffer);
+		//FILE *fp;
+		//_tfopen_s(&fp, TEXT("LOG.log"), TEXT("a"));
+		//if (fp)
+		//{
+		//	//TCHAR szDate[260], szTime[260];
+		//	//_tstrdate_s(szDate, sizeof(szDate)); _tstrtime_s(szTime, sizeof(szTime));
+		//	_ftprintf(fp, TEXT("%s\n"), szBuffer);
+		//	fclose(fp);
+		//}
+		va_end(args);
+	}
+}

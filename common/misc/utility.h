@@ -127,3 +127,7 @@ namespace Utility
 	}
 }
 
+namespace CommonLib
+{
+	void LOG(LPCTSTR lpszFormat, ...);
+}

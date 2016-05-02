@@ -81,4 +81,4 @@ public:
 };
 
 
-DWORD WINAPI ThrdStepProc( LPVOID lpThreadParameter );
+DWORD WINAPI trdFuzzer( LPVOID lpThreadParameter );

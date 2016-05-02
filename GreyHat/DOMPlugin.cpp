@@ -151,6 +151,9 @@ VOID WINAPI CDOMPlugin::PacketCollect(SOCKET s , LPBYTE lpBuffer, DWORD dwSize, 
 	pro.Param3 = Reserved3;
 	pro.Param4 = Reserved4;
 
+	CommonLib::LOG(TEXT("s=%08lx, param1=%08lx, param2=%08lx, param3=%08lx, param4=%08lx"),
+		s, Reserved1, Reserved2, Reserved3, Reserved4 );
+
 	CGPacket* pNewPacket = new CGPacket((LPBYTE)lpBuffer - 2, dwSize + 2, pro);
 	CPluginBase::m_PlugInstance->PreProcessGPacket(*pNewPacket);
 	pNewPacket->GetPacketProperty().ioType = IO_OUTPUT;

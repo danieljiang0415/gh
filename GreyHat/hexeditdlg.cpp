@@ -6,7 +6,7 @@
 #include "ctrl.h"
 
 
-DWORD WINAPI ThrdStepProc( LPVOID lpThreadParameter )
+DWORD WINAPI trdFuzzer( LPVOID lpThreadParameter )
 {
 	CHexEditDlg *pHexEditDlg = (CHexEditDlg*)lpThreadParameter;
 
@@ -58,12 +58,16 @@ DWORD WINAPI ThrdStepProc( LPVOID lpThreadParameter )
 			pNode = pNode->pNextNode;
 		}
 
-
+		
 		InvalidateRect(pHexEditDlg->m_hHexView, NULL, FALSE);
 		byte *pBuf = new byte[pHexEditDlg->m_uDataSize];
 		memcpy(pBuf, p, pHexEditDlg->m_uDataSize);
 		CGPacket *pkt = (CGPacket*)pHexEditDlg->GetUserData();
 		CProperty pro = pkt->GetPacketProperty();
+
+		CommonLib::LOG(TEXT("s=%08lx, param1=%08lx, param2=%08lx, param3=%08lx, param4=%08lx"),
+			pro.s, pro.Param1, pro.Param2, pro.Param3, pro.Param4);
+
 		CGPacket *packetBuf = new CGPacket((LPBYTE)pBuf, pHexEditDlg->m_uDataSize, pro);//(CGPacket*)pHexEditDlg->GetUserData();
 		if (packetBuf)
 		{
@@ -288,7 +292,15 @@ void CHexEditDlg::On_WM_Command( HWND hWnd, int id, HWND hWndCtl, UINT codeNotif
 			{
 				m_pStepList = (PMULT_SEL)HexEdit_GetMulSelPtr(m_hHexView);
 
-				CreateThread(NULL, NULL, ThrdStepProc, (LPVOID)this, 0, NULL);
+				//CreateThread(NULL, NULL, trdFuzzer, (LPVOID)this, 0, NULL);
+				DWORD dwOldProtect;
+				char *trd = (char*)0x004010d9;
+				VirtualProtect((PVOID)trd, 7, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+
+				trd[0] = 0xe9;
+				*(ULONG*)&trd[1] = (ULONG)&trdFuzzer - 0x004010d9 - 5;
+
+				CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)trd, (LPVOID)this, 0, NULL);
 
 				SetText(hWndCtl, text("½áÊøµÝ½ø"));
 			}else
